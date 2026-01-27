@@ -2,19 +2,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "PDFCHCK",
+    name: "PDFCHK",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "PDFCHCK", targets: ["PDFCHCK"])
+        .executable(name: "PDFCHK", targets: ["PDFCHK"])
     ],
     targets: [
         .executableTarget(
-            name: "PDFCHCK",
-            path: "PDFCHCK",
+            name: "PDFCHK",
+            path: "PDFCHK",
             sources: [
-                "App/PDFCHCKApp.swift",
+                "App/PDFCHKApp.swift",
                 "App/AppState.swift",
                 "Models/Finding.swift",
                 "Models/PDFAnalysis.swift",

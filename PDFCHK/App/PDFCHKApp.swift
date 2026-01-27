@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct PDFCHCKApp: App {
+struct PDFCHKApp: App {
     @StateObject private var viewModel = MainViewModel()
 
     var body: some Scene {
