@@ -12,62 +12,72 @@ struct ComparisonView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ComparisonToolbar(viewModel: viewModel)
+            ComparisonToolbar(viewModel: viewModel, isComparisonMode: comparisonAnalysis != nil)
 
             GeometryReader { geometry in
-                switch viewModel.viewMode {
-                case .sideBySide:
-                    HStack(spacing: 0) {
-                        SyncedDocumentView(
-                            title: "Original",
-                            image: viewModel.originalPageImage,
-                            zoom: viewModel.zoomLevel,
-                            scrollSync: scrollSync,
-                            paneId: "original"
-                        )
-
-                        Divider()
-                            .background(DesignSystem.Colors.border)
-
-                        SyncedDocumentView(
-                            title: "Comparison",
-                            image: viewModel.comparisonPageImage,
-                            zoom: viewModel.zoomLevel,
-                            scrollSync: scrollSync,
-                            paneId: "comparison",
-                            showDiffOverlay: viewModel.showDiffOverlay,
-                            diffImage: viewModel.diffImage
-                        )
-                    }
-
-                case .originalOnly:
+                // Single document mode - no header, just the document
+                if comparisonAnalysis == nil {
                     SingleDocumentView(
-                        title: "Original",
+                        title: nil,
                         image: viewModel.originalPageImage,
                         zoom: viewModel.zoomLevel
                     )
+                } else {
+                    // Comparison mode - show based on view mode
+                    switch viewModel.viewMode {
+                    case .sideBySide:
+                        HStack(spacing: 0) {
+                            SyncedDocumentView(
+                                title: "First Document",
+                                image: viewModel.originalPageImage,
+                                zoom: viewModel.zoomLevel,
+                                scrollSync: scrollSync,
+                                paneId: "original"
+                            )
 
-                case .comparisonOnly:
-                    SingleDocumentView(
-                        title: "Comparison",
-                        image: viewModel.comparisonPageImage,
-                        zoom: viewModel.zoomLevel,
-                        showDiffOverlay: viewModel.showDiffOverlay,
-                        diffImage: viewModel.diffImage
-                    )
+                            Divider()
+                                .background(DesignSystem.Colors.border)
 
-                case .overlay:
-                    OverlayPageView(
-                        original: viewModel.originalPageImage,
-                        comparison: viewModel.comparisonPageImage,
-                        zoom: viewModel.zoomLevel
-                    )
+                            SyncedDocumentView(
+                                title: "Second Document",
+                                image: viewModel.comparisonPageImage,
+                                zoom: viewModel.zoomLevel,
+                                scrollSync: scrollSync,
+                                paneId: "comparison",
+                                showDiffOverlay: viewModel.showDiffOverlay,
+                                diffImage: viewModel.diffImage
+                            )
+                        }
 
-                case .diffOnly:
-                    DiffOnlyView(
-                        diffImage: viewModel.diffImage,
-                        zoom: viewModel.zoomLevel
-                    )
+                    case .originalOnly:
+                        SingleDocumentView(
+                            title: "First Document",
+                            image: viewModel.originalPageImage,
+                            zoom: viewModel.zoomLevel
+                        )
+
+                    case .comparisonOnly:
+                        SingleDocumentView(
+                            title: "Second Document",
+                            image: viewModel.comparisonPageImage,
+                            zoom: viewModel.zoomLevel,
+                            showDiffOverlay: viewModel.showDiffOverlay,
+                            diffImage: viewModel.diffImage
+                        )
+
+                    case .overlay:
+                        OverlayPageView(
+                            original: viewModel.originalPageImage,
+                            comparison: viewModel.comparisonPageImage,
+                            zoom: viewModel.zoomLevel
+                        )
+
+                    case .diffOnly:
+                        DiffOnlyView(
+                            diffImage: viewModel.diffImage,
+                            zoom: viewModel.zoomLevel
+                        )
+                    }
                 }
             }
 
@@ -318,7 +328,7 @@ class FlippedDocumentView: NSView {
 
 // MARK: - Single Document View
 struct SingleDocumentView: View {
-    let title: String
+    let title: String?
     let image: NSImage?
     let zoom: Double
     var showDiffOverlay: Bool = false
@@ -326,18 +336,21 @@ struct SingleDocumentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(title)
-                .font(DesignSystem.Typography.sectionHeader)
-                .foregroundColor(DesignSystem.Colors.textPrimary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, DesignSystem.Spacing.xs)
-                .background(DesignSystem.Colors.background)
-                .overlay(
-                    Rectangle()
-                        .frame(height: 1)
-                        .foregroundColor(DesignSystem.Colors.border),
-                    alignment: .bottom
-                )
+            // Only show header if title is provided
+            if let title = title {
+                Text(title)
+                    .font(DesignSystem.Typography.sectionHeader)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DesignSystem.Spacing.xs)
+                    .background(DesignSystem.Colors.background)
+                    .overlay(
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(DesignSystem.Colors.border),
+                        alignment: .bottom
+                    )
+            }
 
             GeometryReader { geometry in
                 ScrollView(.vertical, showsIndicators: true) {
@@ -380,31 +393,53 @@ struct SingleDocumentView: View {
 // MARK: - Comparison Toolbar
 struct ComparisonToolbar: View {
     @ObservedObject var viewModel: ComparisonViewModel
+    @EnvironmentObject var mainViewModel: MainViewModel
+    let isComparisonMode: Bool
 
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
-            // View mode cycle button
-            Button(action: {
-                viewModel.cycleViewMode()
-            }) {
-                HStack(spacing: 6) {
-                    Image(systemName: viewModeIcon)
-                        .font(.system(size: 12))
-                    Text(viewModel.viewMode.rawValue)
-                        .font(DesignSystem.Typography.body)
+            // View mode button - only show cycle in comparison mode
+            if isComparisonMode {
+                Button(action: {
+                    viewModel.cycleViewMode()
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: viewModeIcon)
+                            .font(.system(size: 12))
+                        Text(viewModel.viewMode.rawValue)
+                            .font(DesignSystem.Typography.body)
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, DesignSystem.Spacing.md)
+                    .padding(.vertical, DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, DesignSystem.Spacing.md)
-                .padding(.vertical, DesignSystem.Spacing.sm)
-                .background(DesignSystem.Colors.accent)
-                .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+                .buttonStyle(.plain)
+            } else {
+                // Single document mode - show "Add a Document" button
+                Button(action: {
+                    mainViewModel.selectComparisonFile()
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.rectangle.on.rectangle")
+                            .font(.system(size: 12))
+                        Text("Add a Document")
+                            .font(DesignSystem.Typography.body)
+                    }
+                    .foregroundColor(.white)
+                    .frame(width: 160)
+                    .padding(.vertical, DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             Spacer()
 
-            // Show Diff toggle for side-by-side and comparison modes
-            if viewModel.viewMode == .sideBySide || viewModel.viewMode == .comparisonOnly {
+            // Show Diff toggle for side-by-side and comparison modes (only in comparison mode)
+            if isComparisonMode && (viewModel.viewMode == .sideBySide || viewModel.viewMode == .comparisonOnly) {
                 Toggle("Show Diff", isOn: $viewModel.showDiffOverlay)
                     .font(DesignSystem.Typography.label)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
@@ -413,8 +448,8 @@ struct ComparisonToolbar: View {
                     .frame(height: 20)
             }
 
-            // Sync Scroll toggle only for side-by-side
-            if viewModel.viewMode == .sideBySide {
+            // Sync Scroll toggle only for side-by-side (only in comparison mode)
+            if isComparisonMode && viewModel.viewMode == .sideBySide {
                 Toggle("Sync Scroll", isOn: $viewModel.scrollSyncEnabled)
                     .font(DesignSystem.Typography.label)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
@@ -465,7 +500,7 @@ struct OverlayPageView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Original")
+                Text("First Document")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
 

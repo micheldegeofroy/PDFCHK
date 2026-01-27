@@ -9,11 +9,14 @@ struct WelcomeView: View {
         VStack(spacing: DesignSystem.Spacing.xl) {
             Spacer()
 
-            // Title
-            VStack(spacing: DesignSystem.Spacing.xs) {
-                Text("PDFCHK")
-                    .font(DesignSystem.Typography.largeTitle)
-                    .foregroundColor(DesignSystem.Colors.accent)
+            // Logo and Title
+            VStack(spacing: DesignSystem.Spacing.sm) {
+                if let logoImage = loadLogoImage() {
+                    Image(nsImage: logoImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 120)
+                }
 
                 Text("PDF Forensic Tool")
                     .font(DesignSystem.Typography.body)
@@ -92,4 +95,19 @@ struct WelcomeView: View {
     }
 }
 
+// MARK: - Logo Helper
+private func loadLogoImage() -> NSImage? {
+    // Try loading PNG directly from bundle
+    if let url = Bundle.module.url(forResource: "logo", withExtension: "png") {
+        return NSImage(contentsOf: url)
+    }
+
+    // Try loading from asset catalog
+    if let image = Bundle.module.image(forResource: "AppLogo") {
+        return image
+    }
+
+    // Fallback: try NSImage named
+    return NSImage(named: "AppLogo")
+}
 

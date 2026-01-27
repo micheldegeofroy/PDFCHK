@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="PDFCHK Logo" width="120" height="120">
+  <img src="assets/logo.png" alt="PDFCHK Logo" width="140">
 </p>
 
 <h1 align="center">PDFCHK</h1>
@@ -107,7 +107,7 @@ swift build -c release
 ### Keyboard Shortcuts
 | Shortcut | Action |
 |----------|--------|
-| ⌘N | New Comparison |
+| ⌘N | New Analysis |
 | ⌘⇧E | Export as JSON |
 | ⌘⌥E | Export as PDF |
 

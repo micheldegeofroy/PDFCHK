@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <!-- Monochrome K with arrow - stencil/stamp ready -->
+
+  <!-- Vertical stem of K -->
+  <rect x="25" y="20" width="14" height="80" rx="2" fill="black"/>
+
+  <!-- Upper diagonal as arrow pointing INTO the K -->
+  <!-- Arrow body (diagonal stroke) -->
+  <path d="M39 55 L75 25 L85 25 L85 35 L49 60 Z" fill="black"/>
+  <!-- Arrowhead pointing left into the stem -->
+  <polygon points="39,55 55,45 55,65" fill="black"/>
+
+  <!-- Lower diagonal of K (standard) -->
+  <path d="M39 65 L49 60 L85 95 L85 100 L75 100 Z" fill="black"/>
+</svg>

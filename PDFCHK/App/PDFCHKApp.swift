@@ -16,7 +16,7 @@ struct PDFCHKApp: App {
             CommandGroup(replacing: .newItem) {}
 
             CommandGroup(after: .newItem) {
-                Button("New Comparison") {
+                Button("New Analysis") {
                     viewModel.reset()
                 }
                 .keyboardShortcut("n", modifiers: .command)

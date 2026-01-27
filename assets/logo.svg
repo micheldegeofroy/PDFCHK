@@ -1,28 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
-  <defs>
-    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
-    </linearGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="120" height="140">
+  <!-- PDFCHK Logo - Document with K arrow icon on banner -->
 
-  <!-- Background circle -->
-  <circle cx="60" cy="60" r="56" fill="url(#blueGradient)"/>
+  <!-- Document outline with folded corner -->
+  <path d="M15 10 L75 10 L105 40 L105 130 L15 130 Z"
+        fill="none"
+        stroke="#2563EB"
+        stroke-width="8"
+        stroke-linejoin="round"/>
 
-  <!-- Document shape -->
-  <path d="M40 25 L70 25 L85 40 L85 95 L40 95 Z" fill="white" opacity="0.95"/>
+  <!-- Folded corner -->
+  <path d="M75 10 L75 40 L105 40"
+        fill="none"
+        stroke="#2563EB"
+        stroke-width="8"
+        stroke-linejoin="round"/>
 
-  <!-- Document fold -->
-  <path d="M70 25 L70 40 L85 40 Z" fill="white" opacity="0.7"/>
+  <!-- Banner background -->
+  <rect x="0" y="70" width="120" height="40" fill="#2563EB"/>
 
-  <!-- Document lines -->
-  <rect x="48" y="50" width="30" height="3" rx="1.5" fill="#2563EB" opacity="0.4"/>
-  <rect x="48" y="58" width="25" height="3" rx="1.5" fill="#2563EB" opacity="0.4"/>
-  <rect x="48" y="66" width="28" height="3" rx="1.5" fill="#2563EB" opacity="0.4"/>
+  <!-- K with arrow icon (centered on banner) -->
+  <g transform="translate(42, 74)">
+    <!-- Vertical stem of K -->
+    <rect x="0" y="0" width="6" height="32" fill="white"/>
 
-  <!-- Checkmark circle -->
-  <circle cx="78" cy="82" r="18" fill="#10B981"/>
+    <!-- Arrow pointing into K (upper diagonal with arrowhead) -->
+    <path d="M6 13 L22 2 L32 2 L32 8 L14 17 Z" fill="white"/>
+    <!-- Arrowhead -->
+    <polygon points="6,13 16,8 16,20" fill="white"/>
 
-  <!-- Checkmark -->
-  <path d="M70 82 L76 88 L88 74" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Lower diagonal -->
+    <path d="M6 19 L14 17 L32 32 L32 34 L22 34 Z" fill="white"/>
+  </g>
 </svg>

@@ -53,6 +53,10 @@ let package = Package(
                 "Utilities/FileHelpers.swift",
                 "Utilities/DiffHelpers.swift"
             ],
+resources: [
+                .process("../Resources/Assets.xcassets"),
+                .copy("../Resources/logo.png")
+            ],
             swiftSettings: [
                 .swiftLanguageMode(.v5)
             ]

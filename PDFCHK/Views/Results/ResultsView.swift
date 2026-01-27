@@ -16,7 +16,7 @@ struct ResultsView: View {
                 // Split view content
                 VSplitView {
                     // Top: PDF Comparison
-                    if let report = viewModel.report {
+                    if viewModel.report != nil {
                         ComparisonView(
                             originalAnalysis: viewModel.originalAnalysis,
                             comparisonAnalysis: viewModel.comparisonAnalysis,
@@ -47,8 +47,22 @@ struct ResultsToolbar: View {
 
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
-            // New comparison button
-            SecondaryButton(title: "New Comparison", action: viewModel.reset)
+            // New analysis button - matches width of "Add a Document" button
+            Button(action: viewModel.reset) {
+                Text("New Analysis")
+                    .font(DesignSystem.Typography.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .frame(width: 160)
+                    .padding(.vertical, DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.background)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                            .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+            }
+            .buttonStyle(.plain)
 
             Spacer()
 

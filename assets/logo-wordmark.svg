@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" width="280" height="60">
+  <!-- PDFCHK wordmark - monochrome, stamp-ready -->
+  <!-- The K has an arrow pointing into it -->
+
+  <!-- PDFCH in bold sans-serif -->
+  <text x="10" y="45" font-family="Helvetica Neue, Arial, sans-serif" font-size="42" font-weight="700" fill="black">PDFCH</text>
+
+  <!-- Custom K with arrow at the end -->
+  <g transform="translate(198, 10)">
+    <!-- Vertical stem -->
+    <rect x="0" y="0" width="10" height="42" fill="black"/>
+
+    <!-- Arrow pointing into K (upper diagonal) -->
+    <path d="M10 18 L32 0 L42 0 L42 8 L18 22 Z" fill="black"/>
+    <!-- Arrowhead -->
+    <polygon points="10,18 22,12 22,26" fill="black"/>
+
+    <!-- Lower diagonal -->
+    <path d="M10 24 L18 22 L42 42 L42 48 L32 48 Z" fill="black"/>
+  </g>
+</svg>
