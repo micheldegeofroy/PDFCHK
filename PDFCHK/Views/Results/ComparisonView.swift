@@ -417,7 +417,7 @@ struct ComparisonToolbar: View {
                 }
                 .buttonStyle(.plain)
             } else {
-                // Single document mode - show "Add a Document" button
+                // Single document mode - show "Add a Document" button with drop support
                 Button(action: {
                     mainViewModel.selectComparisonFile()
                 }) {
@@ -434,6 +434,18 @@ struct ComparisonToolbar: View {
                     .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
                 }
                 .buttonStyle(.plain)
+                .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                    guard let provider = providers.first else { return false }
+                    _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                        if let url = url, url.pathExtension.lowercased() == "pdf" {
+                            DispatchQueue.main.async {
+                                mainViewModel.droppedFiles.comparisonURL = url
+                                mainViewModel.startAnalysis()
+                            }
+                        }
+                    }
+                    return true
+                }
             }
 
             Spacer()
