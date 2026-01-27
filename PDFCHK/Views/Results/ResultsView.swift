@@ -38,6 +38,22 @@ struct ResultsView: View {
             }
         }
         .background(DesignSystem.Colors.background)
+        // Allow dropping a PDF anywhere to add second document (only in single document mode)
+        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+            // Only accept drops if we're in single document mode
+            guard viewModel.comparisonAnalysis == nil else { return false }
+            guard let provider = providers.first else { return false }
+
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                if let url = url, url.pathExtension.lowercased() == "pdf" {
+                    DispatchQueue.main.async {
+                        viewModel.droppedFiles.comparisonURL = url
+                        viewModel.startAnalysis()
+                    }
+                }
+            }
+            return true
+        }
     }
 }
 
