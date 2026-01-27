@@ -61,7 +61,7 @@ class ReportExporter {
 
         // Title
         let titleFont = NSFont.boldSystemFont(ofSize: 28)
-        let title = "PDF Forgery Detection Report"
+        let title = "PDF Forensic Analysis Report"
         drawText(title, at: CGPoint(x: 72, y: 700), font: titleFont, context: context)
 
         // Subtitle
@@ -92,7 +92,7 @@ class ReportExporter {
         drawText("Size: \(report.comparisonFile.formattedSize)", at: CGPoint(x: 72, y: infoY - 80), font: infoFont, color: .gray, context: context)
 
         // Footer
-        drawText("PDFCHCK - PDF Forgery Detection Tool", at: CGPoint(x: 200, y: 50), font: NSFont.systemFont(ofSize: 10), color: .gray, context: context)
+        drawText("PDFCHK - PDF Forensic Tool", at: CGPoint(x: 220, y: 50), font: NSFont.systemFont(ofSize: 10), color: .gray, context: context)
 
         return page
     }
@@ -184,8 +184,8 @@ class ReportExporter {
             let severityColor: NSColor
             switch finding.severity {
             case .critical: severityColor = .red
-            case .high: severityColor = .orange
-            case .medium: severityColor = .yellow
+            case .high: severityColor = .red
+            case .medium: severityColor = .blue
             case .low: severityColor = .gray
             case .info: severityColor = .blue
             }

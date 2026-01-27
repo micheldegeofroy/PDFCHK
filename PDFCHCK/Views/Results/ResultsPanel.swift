@@ -10,6 +10,7 @@ struct ResultsPanel: View {
 
     enum ResultsTab: String, CaseIterable {
         case summary = "Summary"
+        case tampering = "Tampering"
         case findings = "Findings"
         case security = "Security"
         case forensic = "Forensic"
@@ -46,6 +47,8 @@ struct ResultsPanel: View {
             switch selectedTab {
             case .summary:
                 SummaryTab(report: report)
+            case .tampering:
+                TamperingTab(analysis: report.tamperingAnalysis)
             case .findings:
                 FindingsSection(findings: report.findings)
             case .security:
@@ -132,6 +135,18 @@ struct TabButton: View {
 struct SummaryTab: View {
     let report: DetectionReport
 
+    private var checksumMatch: Bool {
+        guard let origHash = report.originalFile.checksum,
+              let compHash = report.comparisonFile.checksum else {
+            return false
+        }
+        return origHash == compHash
+    }
+
+    private var isComparison: Bool {
+        report.originalFile.path != report.comparisonFile.path
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: DesignSystem.Spacing.md) {
@@ -141,7 +156,18 @@ struct SummaryTab: View {
                 // File info
                 HStack(spacing: DesignSystem.Spacing.md) {
                     FileInfoCard(title: "Original", file: report.originalFile)
-                    FileInfoCard(title: "Comparison", file: report.comparisonFile)
+                    if isComparison {
+                        FileInfoCard(title: "Comparison", file: report.comparisonFile)
+                    }
+                }
+
+                // File hash comparison (only for comparison mode)
+                if isComparison {
+                    FileHashComparison(
+                        originalHash: report.originalFile.checksum,
+                        comparisonHash: report.comparisonFile.checksum,
+                        match: checksumMatch
+                    )
                 }
 
                 // Similarity scores
@@ -219,6 +245,292 @@ struct SummaryTab: View {
     }
 }
 
+// MARK: - Tampering Tab
+struct TamperingTab: View {
+    let analysis: TamperingAnalysis?
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: DesignSystem.Spacing.md) {
+                if let tampering = analysis {
+                    // Tampering Score Indicator
+                    TamperingScoreIndicator(
+                        score: tampering.score,
+                        likelihood: tampering.likelihood
+                    )
+
+                    // Summary
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                        Text("Analysis Summary")
+                            .font(DesignSystem.Typography.sectionHeader)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                        Text(tampering.summary)
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(DesignSystem.Spacing.sm)
+                    .background(DesignSystem.Colors.background)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                            .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+
+                    // Indicators by severity
+                    if !tampering.criticalIndicators.isEmpty {
+                        TamperingIndicatorSection(
+                            title: "Critical Indicators",
+                            indicators: tampering.criticalIndicators,
+                            color: .red
+                        )
+                    }
+
+                    if !tampering.highIndicators.isEmpty {
+                        TamperingIndicatorSection(
+                            title: "High Severity Indicators",
+                            indicators: tampering.highIndicators,
+                            color: .red
+                        )
+                    }
+
+                    if !tampering.mediumIndicators.isEmpty {
+                        TamperingIndicatorSection(
+                            title: "Medium Severity Indicators",
+                            indicators: tampering.mediumIndicators,
+                            color: DesignSystem.Colors.accent
+                        )
+                    }
+
+                    if !tampering.lowIndicators.isEmpty {
+                        TamperingIndicatorSection(
+                            title: "Minor Indicators",
+                            indicators: tampering.lowIndicators,
+                            color: DesignSystem.Colors.textSecondary
+                        )
+                    }
+
+                    // No indicators
+                    if tampering.indicators.isEmpty {
+                        VStack(spacing: DesignSystem.Spacing.sm) {
+                            Image(systemName: "checkmark.shield")
+                                .font(.system(size: 40))
+                                .foregroundColor(DesignSystem.Colors.accent)
+
+                            Text("No Tampering Indicators Detected")
+                                .font(DesignSystem.Typography.sectionHeader)
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                            Text("The document shows no signs of post-creation modification.")
+                                .font(DesignSystem.Typography.body)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(DesignSystem.Spacing.xl)
+                    }
+                } else {
+                    // Analysis not available
+                    VStack(spacing: DesignSystem.Spacing.sm) {
+                        Image(systemName: "questionmark.circle")
+                            .font(.system(size: 40))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        Text("Tampering Analysis Not Available")
+                            .font(DesignSystem.Typography.sectionHeader)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(DesignSystem.Spacing.xl)
+                }
+            }
+            .padding(DesignSystem.Spacing.md)
+        }
+        .background(DesignSystem.Colors.background)
+    }
+}
+
+// MARK: - Tampering Score Indicator
+struct TamperingScoreIndicator: View {
+    let score: Double
+    let likelihood: TamperingLikelihood
+
+    var body: some View {
+        VStack(spacing: DesignSystem.Spacing.sm) {
+            // Score circle
+            ZStack {
+                Circle()
+                    .stroke(DesignSystem.Colors.border, lineWidth: 8)
+                    .frame(width: 100, height: 100)
+
+                Circle()
+                    .trim(from: 0, to: min(score / 100, 1.0))
+                    .stroke(scoreColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .frame(width: 100, height: 100)
+                    .rotationEffect(.degrees(-90))
+
+                VStack(spacing: 2) {
+                    Text("\(Int(score))")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Text("/ 100")
+                        .font(.system(size: 12))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+            }
+
+            // Likelihood label
+            Text(likelihood.rawValue)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(scoreColor)
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.vertical, DesignSystem.Spacing.xxs)
+                .background(scoreColor.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+
+            Text("Tampering Likelihood")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(DesignSystem.Spacing.md)
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+
+    private var scoreColor: Color {
+        switch likelihood {
+        case .none, .low:
+            return DesignSystem.Colors.accent
+        case .moderate:
+            return DesignSystem.Colors.accent
+        case .high, .veryHigh:
+            return .red
+        }
+    }
+}
+
+// MARK: - Tampering Indicator Section
+struct TamperingIndicatorSection: View {
+    let title: String
+    let indicators: [TamperingIndicator]
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            HStack {
+                Circle()
+                    .fill(color)
+                    .frame(width: 8, height: 8)
+
+                Text(title)
+                    .font(DesignSystem.Typography.sectionHeader)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                Text("(\(indicators.count))")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+
+            ForEach(indicators) { indicator in
+                TamperingIndicatorRow(indicator: indicator)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DesignSystem.Spacing.sm)
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - Tampering Indicator Row
+struct TamperingIndicatorRow: View {
+    let indicator: TamperingIndicator
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+            HStack {
+                Image(systemName: indicator.type.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(severityColor)
+                    .frame(width: 20)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(indicator.title)
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Text(indicator.description)
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .lineLimit(isExpanded ? nil : 2)
+                }
+
+                Spacer()
+
+                if indicator.details != nil {
+                    Button(action: { isExpanded.toggle() }) {
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 10))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // Expanded details
+            if isExpanded, let details = indicator.details {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
+                    ForEach(Array(details.keys.sorted()), id: \.self) { key in
+                        if let value = details[key] {
+                            HStack(spacing: DesignSystem.Spacing.xs) {
+                                Text(key + ":")
+                                    .font(DesignSystem.Typography.caption)
+                                    .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                                Text(value)
+                                    .font(DesignSystem.Typography.caption)
+                                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                            }
+                        }
+                    }
+                }
+                .padding(.leading, 28)
+                .padding(.top, DesignSystem.Spacing.xxs)
+            }
+        }
+        .padding(DesignSystem.Spacing.xs)
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(DesignSystem.Colors.border, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+    }
+
+    private var severityColor: Color {
+        switch indicator.severity {
+        case .critical, .high:
+            return .red
+        case .medium:
+            return DesignSystem.Colors.accent
+        case .low, .info:
+            return DesignSystem.Colors.textSecondary
+        }
+    }
+}
+
 // MARK: - File Info Card
 struct FileInfoCard: View {
     let title: String
@@ -248,6 +560,75 @@ struct FileInfoCard: View {
                 .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
         )
         .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - File Hash Comparison
+struct FileHashComparison: View {
+    let originalHash: String?
+    let comparisonHash: String?
+    let match: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            HStack {
+                Text("File Hash Comparison (SHA-256)")
+                    .font(DesignSystem.Typography.sectionHeader)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                Spacer()
+
+                // Match indicator
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(match ? DesignSystem.Colors.accent : Color.red)
+                        .frame(width: 8, height: 8)
+                    Text(match ? "IDENTICAL FILES" : "FILES DIFFER")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(match ? DesignSystem.Colors.accent : .red)
+                }
+            }
+
+            if match {
+                Text("The files have identical SHA-256 hashes, meaning they are byte-for-byte identical.")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+
+            // Hash values
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                HashRow(label: "Original", hash: originalHash, highlight: !match)
+                HashRow(label: "Comparison", hash: comparisonHash, highlight: !match)
+            }
+        }
+        .padding(DesignSystem.Spacing.sm)
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(match ? DesignSystem.Colors.accent.opacity(0.5) : DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - Hash Row
+struct HashRow: View {
+    let label: String
+    let hash: String?
+    let highlight: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+
+            Text(hash ?? "Not calculated")
+                .font(.system(size: 10, design: .monospaced))
+                .foregroundColor(highlight ? .red : DesignSystem.Colors.textPrimary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
     }
 }
 
@@ -519,7 +900,7 @@ struct CompareRowView: View {
             // Original value
             Text(row.original)
                 .font(DesignSystem.Typography.label)
-                .foregroundColor(row.isDifferent ? DesignSystem.Colors.textPrimary : DesignSystem.Colors.textSecondary)
+                .foregroundColor(row.isDifferent ? .red : DesignSystem.Colors.accent)
                 .fontWeight(row.isDifferent ? .medium : .regular)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(2)
@@ -527,14 +908,14 @@ struct CompareRowView: View {
             // Comparison value
             Text(row.comparison)
                 .font(DesignSystem.Typography.label)
-                .foregroundColor(row.isDifferent ? DesignSystem.Colors.textPrimary : DesignSystem.Colors.textSecondary)
+                .foregroundColor(row.isDifferent ? .red : DesignSystem.Colors.accent)
                 .fontWeight(row.isDifferent ? .medium : .regular)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(2)
         }
         .padding(.horizontal, DesignSystem.Spacing.sm)
         .padding(.vertical, 4)
-        .background(row.isDifferent ? DesignSystem.Colors.border.opacity(0.3) : Color.clear)
+        .background(row.isDifferent ? Color.red.opacity(0.05) : Color.clear)
     }
 }
 
@@ -884,8 +1265,8 @@ enum SecurityStatus {
 
     var color: Color {
         switch self {
-        case .good: return Color.green
-        case .warning: return Color.orange
+        case .good: return DesignSystem.Colors.accent
+        case .warning: return Color.red
         case .bad: return Color.red
         case .neutral: return DesignSystem.Colors.textSecondary
         }
@@ -981,10 +1362,10 @@ struct FindingCard: View {
     private var severityColor: Color {
         switch finding.severity {
         case .critical: return .red
-        case .high: return .orange
-        case .medium: return .yellow
+        case .high: return .red
+        case .medium: return DesignSystem.Colors.accent
         case .low: return .gray
-        case .info: return .blue
+        case .info: return DesignSystem.Colors.accent
         }
     }
 }
@@ -1110,7 +1491,7 @@ struct ToolStatusBadge: View {
     var body: some View {
         HStack(spacing: 4) {
             Circle()
-                .fill(isAvailable ? Color.green : Color.gray)
+                .fill(isAvailable ? DesignSystem.Colors.accent : Color.gray)
                 .frame(width: 8, height: 8)
 
             Text(name)
@@ -1132,7 +1513,7 @@ struct SuspiciousFindingsSection: View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
             HStack {
                 Image(systemName: "exclamationmark.triangle")
-                    .foregroundColor(.orange)
+                    .foregroundColor(.red)
                 Text("Suspicious Findings")
                     .font(DesignSystem.Typography.sectionHeader)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
@@ -1141,7 +1522,7 @@ struct SuspiciousFindingsSection: View {
             ForEach(findings, id: \.self) { finding in
                 HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
                     Circle()
-                        .fill(Color.orange)
+                        .fill(Color.red)
                         .frame(width: 6, height: 6)
                         .padding(.top, 6)
 
@@ -1153,7 +1534,7 @@ struct SuspiciousFindingsSection: View {
         }
         .padding(DesignSystem.Spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.orange.opacity(0.05))
+        .background(Color.red.opacity(0.05))
         .overlay(
             RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
                 .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
@@ -1183,7 +1564,7 @@ struct FontComparisonSection: View {
                     if comparison.hasDifferences {
                         Text("Differences found")
                             .font(DesignSystem.Typography.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.red)
                     }
 
                     Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
@@ -1213,7 +1594,7 @@ struct FontComparisonSection: View {
                             ForEach(comparison.addedFonts, id: \.self) { font in
                                 Text("+ \(font)")
                                     .font(DesignSystem.Typography.label)
-                                    .foregroundColor(.green)
+                                    .foregroundColor(DesignSystem.Colors.accent)
                             }
                         }
                         .padding(.horizontal, DesignSystem.Spacing.sm)
@@ -1267,7 +1648,7 @@ struct ResourceComparisonSection: View {
                     if comparison.hasDifferences {
                         Text("\(comparison.pagesWithDifferentResources.count) pages differ")
                             .font(DesignSystem.Typography.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.red)
                     }
 
                     Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
@@ -1319,7 +1700,7 @@ struct IncrementalUpdatesSection: View {
                     if original?.hasIncrementalUpdates == true || comparison?.hasIncrementalUpdates == true {
                         Text("Updates detected")
                             .font(DesignSystem.Typography.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.red)
                     }
 
                     Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
@@ -1342,7 +1723,7 @@ struct IncrementalUpdatesSection: View {
                             if orig.hasIncrementalUpdates {
                                 Text("\(orig.updateCount) updates, \(orig.freeObjects) deleted objects")
                                     .font(DesignSystem.Typography.label)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.red)
                             } else {
                                 Text("No incremental updates")
                                     .font(DesignSystem.Typography.label)
@@ -1361,7 +1742,7 @@ struct IncrementalUpdatesSection: View {
                             if comp.hasIncrementalUpdates {
                                 Text("\(comp.updateCount) updates, \(comp.freeObjects) deleted objects")
                                     .font(DesignSystem.Typography.label)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.red)
                             } else {
                                 Text("No incremental updates")
                                     .font(DesignSystem.Typography.label)
@@ -1494,7 +1875,7 @@ struct VersionHistorySection: View {
                     if original.dateDiscrepancy || comparison.dateDiscrepancy {
                         Text("Date discrepancy")
                             .font(DesignSystem.Typography.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.red)
                     }
 
                     Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
@@ -1584,7 +1965,7 @@ struct GPSLocationSection: View {
 
                         Text("\(totalLocations) location(s)")
                             .font(DesignSystem.Typography.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.red)
 
                         Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
                             .font(.system(size: 10))

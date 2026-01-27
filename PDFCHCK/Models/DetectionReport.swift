@@ -13,6 +13,7 @@ struct DetectionReport: Codable {
     let visualComparison: VisualComparisonSummary
     let metadataComparison: MetadataComparisonSummary
     let externalToolsAnalysis: ExternalToolsComparisonSummary?
+    let tamperingAnalysis: TamperingAnalysis?
 
     init(
         id: UUID = UUID(),
@@ -24,7 +25,8 @@ struct DetectionReport: Codable {
         textComparison: TextComparisonSummary,
         visualComparison: VisualComparisonSummary,
         metadataComparison: MetadataComparisonSummary,
-        externalToolsAnalysis: ExternalToolsComparisonSummary? = nil
+        externalToolsAnalysis: ExternalToolsComparisonSummary? = nil,
+        tamperingAnalysis: TamperingAnalysis? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -37,6 +39,7 @@ struct DetectionReport: Codable {
         self.visualComparison = visualComparison
         self.metadataComparison = metadataComparison
         self.externalToolsAnalysis = externalToolsAnalysis
+        self.tamperingAnalysis = tamperingAnalysis
     }
 
     var criticalFindings: [Finding] {

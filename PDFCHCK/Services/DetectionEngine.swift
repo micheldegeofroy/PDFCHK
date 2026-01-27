@@ -272,6 +272,33 @@ actor DetectionEngine {
         let externalToolsFindings = generateExternalToolsFindings(state: state)
         allFindings.append(contentsOf: externalToolsFindings)
 
+        // Calculate checksums and add checksum finding
+        let originalChecksum = try? FileHelpers.calculateSHA256(for: originalURL)
+        let comparisonChecksum = try? FileHelpers.calculateSHA256(for: comparisonURL)
+
+        if let origHash = originalChecksum, let compHash = comparisonChecksum {
+            if origHash == compHash {
+                allFindings.append(Finding(
+                    category: .forensic,
+                    severity: .info,
+                    title: "Files Are Identical",
+                    description: "SHA-256 checksums match - files are byte-for-byte identical",
+                    details: ["SHA-256": origHash]
+                ))
+            } else {
+                allFindings.append(Finding(
+                    category: .forensic,
+                    severity: .info,
+                    title: "Files Have Different Checksums",
+                    description: "SHA-256 checksums differ - files have been modified",
+                    details: [
+                        "Original SHA-256": origHash,
+                        "Comparison SHA-256": compHash
+                    ]
+                ))
+            }
+        }
+
         // Calculate risk score
         let riskScore = calculateRiskScore(findings: allFindings, state: state)
 
@@ -280,14 +307,14 @@ actor DetectionEngine {
             name: originalURL.lastPathComponent,
             path: originalURL.path,
             size: originalURL.fileSize ?? 0,
-            checksum: try? FileHelpers.calculateSHA256(for: originalURL)
+            checksum: originalChecksum
         )
 
         let comparisonRef = FileReference(
             name: comparisonURL.lastPathComponent,
             path: comparisonURL.path,
             size: comparisonURL.fileSize ?? 0,
-            checksum: try? FileHelpers.calculateSHA256(for: comparisonURL)
+            checksum: comparisonChecksum
         )
 
         // Create summary objects
@@ -315,15 +342,37 @@ actor DetectionEngine {
         // Create external tools comparison summary
         let externalToolsSummary = createExternalToolsSummary(state: state)
 
+        // Run tampering analysis on comparison file (the file being verified)
+        var tamperingAnalysis: TamperingAnalysis?
+        if let compAnalysis = state.comparisonAnalysis,
+           let compForensics = state.comparisonForensics {
+            let tamperingAnalyzer = TamperingAnalyzer()
+            tamperingAnalysis = tamperingAnalyzer.analyze(
+                metadata: compAnalysis.metadata,
+                fileInfo: compAnalysis.fileInfo,
+                forensics: compForensics,
+                externalTools: state.comparisonExternalTools
+            )
+        }
+
+        // Adjust risk score based on tampering analysis
+        let finalRiskScore: Double
+        if let tampering = tamperingAnalysis {
+            finalRiskScore = min(100, riskScore + (tampering.score * 0.3))
+        } else {
+            finalRiskScore = riskScore
+        }
+
         return DetectionReport(
             originalFile: originalRef,
             comparisonFile: comparisonRef,
-            riskScore: riskScore,
+            riskScore: finalRiskScore,
             findings: allFindings.sortedBySeverity(),
             textComparison: textSummary,
             visualComparison: visualSummary,
             metadataComparison: metadataSummary,
-            externalToolsAnalysis: externalToolsSummary
+            externalToolsAnalysis: externalToolsSummary,
+            tamperingAnalysis: tamperingAnalysis
         )
     }
 

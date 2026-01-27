@@ -11,11 +11,11 @@ struct WelcomeView: View {
 
             // Title
             VStack(spacing: DesignSystem.Spacing.xs) {
-                Text("PDFCHCK")
+                Text("PDFCHK")
                     .font(DesignSystem.Typography.largeTitle)
-                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                    .foregroundColor(DesignSystem.Colors.accent)
 
-                Text("PDF Forgery Detection")
+                Text("PDF Forensic Tool")
                     .font(DesignSystem.Typography.body)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
             }
@@ -23,7 +23,7 @@ struct WelcomeView: View {
             // Drop zones
             HStack(spacing: DesignSystem.Spacing.lg) {
                 DropZoneView(
-                    label: "Original PDF",
+                    label: "First PDF",
                     fileName: viewModel.droppedFiles.originalFileName,
                     onTap: viewModel.selectOriginalFile,
                     onFileDrop: { url in
@@ -31,7 +31,7 @@ struct WelcomeView: View {
                     }
                 )
 
-                // Swap button
+                // Swap button - only when both files selected
                 if viewModel.droppedFiles.bothFilesSelected {
                     Button(action: viewModel.swapFiles) {
                         Image(systemName: "arrow.left.arrow.right")
@@ -42,7 +42,7 @@ struct WelcomeView: View {
                 }
 
                 DropZoneView(
-                    label: "Comparison PDF",
+                    label: "Add second PDF for comparison",
                     fileName: viewModel.droppedFiles.comparisonFileName,
                     onTap: viewModel.selectComparisonFile,
                     onFileDrop: { url in
@@ -55,21 +55,34 @@ struct WelcomeView: View {
 
             // Action buttons
             HStack(spacing: DesignSystem.Spacing.md) {
+                // Cancel button - show when any file is loaded
                 if viewModel.droppedFiles.originalURL != nil || viewModel.droppedFiles.comparisonURL != nil {
-                    SecondaryButton(title: "Clear", action: viewModel.clearFiles)
+                    SecondaryButton(title: "Cancel", action: viewModel.clearFiles)
                 }
 
-                PrimaryButton(
-                    title: "Start Analysis",
-                    action: viewModel.startAnalysis,
-                    isEnabled: viewModel.canStartAnalysis
-                )
+                // Single PDF analysis
+                if viewModel.droppedFiles.originalURL != nil && viewModel.droppedFiles.comparisonURL == nil {
+                    PrimaryButton(
+                        title: "Analyze",
+                        action: viewModel.startSingleAnalysis,
+                        isEnabled: true
+                    )
+                }
+
+                // Comparative analysis - both files loaded
+                if viewModel.droppedFiles.bothFilesSelected {
+                    PrimaryButton(
+                        title: "Start Comparative Analysis",
+                        action: viewModel.startAnalysis,
+                        isEnabled: true
+                    )
+                }
             }
 
             Spacer()
 
             // Footer
-            Text("Drop two PDF files to compare and detect potential forgery")
+            Text("Drop a PDF to analyze, or two PDFs for comparative analysis")
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
                 .padding(.bottom, DesignSystem.Spacing.lg)
