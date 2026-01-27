@@ -40,6 +40,22 @@ struct ComparisonView: View {
                         )
                     }
 
+                case .originalOnly:
+                    SingleDocumentView(
+                        title: "Original",
+                        image: viewModel.originalPageImage,
+                        zoom: viewModel.zoomLevel
+                    )
+
+                case .comparisonOnly:
+                    SingleDocumentView(
+                        title: "Comparison",
+                        image: viewModel.comparisonPageImage,
+                        zoom: viewModel.zoomLevel,
+                        showDiffOverlay: viewModel.showDiffOverlay,
+                        diffImage: viewModel.diffImage
+                    )
+
                 case .overlay:
                     OverlayPageView(
                         original: viewModel.originalPageImage,
@@ -300,37 +316,112 @@ class FlippedDocumentView: NSView {
     override var isFlipped: Bool { true }
 }
 
+// MARK: - Single Document View
+struct SingleDocumentView: View {
+    let title: String
+    let image: NSImage?
+    let zoom: Double
+    var showDiffOverlay: Bool = false
+    var diffImage: NSImage? = nil
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(title)
+                .font(DesignSystem.Typography.sectionHeader)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, DesignSystem.Spacing.xs)
+                .background(DesignSystem.Colors.background)
+                .overlay(
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(DesignSystem.Colors.border),
+                    alignment: .bottom
+                )
+
+            GeometryReader { geometry in
+                ScrollView(.vertical, showsIndicators: true) {
+                    if let img = image {
+                        let containerWidth = geometry.size.width
+                        let padding: CGFloat = 16
+                        let availableWidth = containerWidth - padding * 2
+                        let scale = (availableWidth / img.size.width) * zoom
+                        let scaledWidth = img.size.width * scale
+                        let scaledHeight = img.size.height * scale
+
+                        ZStack {
+                            Image(nsImage: img)
+                                .resizable()
+                                .frame(width: scaledWidth, height: scaledHeight)
+
+                            if showDiffOverlay, let diff = diffImage {
+                                Image(nsImage: diff)
+                                    .resizable()
+                                    .frame(width: scaledWidth, height: scaledHeight)
+                                    .opacity(0.5)
+                                    .blendMode(.multiply)
+                            }
+                        }
+                        .frame(width: containerWidth)
+                        .padding(.vertical, padding)
+                    } else {
+                        Text("No page available")
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
+            }
+            .background(DesignSystem.Colors.background)
+        }
+    }
+}
+
 // MARK: - Comparison Toolbar
 struct ComparisonToolbar: View {
     @ObservedObject var viewModel: ComparisonViewModel
 
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
-            Picker("View", selection: $viewModel.viewMode) {
-                ForEach(ComparisonViewModel.ViewMode.allCases, id: \.self) { mode in
-                    Text(mode.rawValue).tag(mode)
+            // View mode cycle button
+            Button(action: {
+                viewModel.cycleViewMode()
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: viewModeIcon)
+                        .font(.system(size: 12))
+                    Text(viewModel.viewMode.rawValue)
+                        .font(DesignSystem.Typography.body)
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, DesignSystem.Spacing.md)
+                .padding(.vertical, DesignSystem.Spacing.sm)
+                .background(DesignSystem.Colors.accent)
+                .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
             }
-            .pickerStyle(.segmented)
-            .frame(width: 250)
+            .buttonStyle(.plain)
 
             Spacer()
 
-            if viewModel.viewMode == .sideBySide {
+            // Show Diff toggle for side-by-side and comparison modes
+            if viewModel.viewMode == .sideBySide || viewModel.viewMode == .comparisonOnly {
                 Toggle("Show Diff", isOn: $viewModel.showDiffOverlay)
                     .font(DesignSystem.Typography.label)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
 
                 Divider()
                     .frame(height: 20)
+            }
 
+            // Sync Scroll toggle only for side-by-side
+            if viewModel.viewMode == .sideBySide {
                 Toggle("Sync Scroll", isOn: $viewModel.scrollSyncEnabled)
                     .font(DesignSystem.Typography.label)
                     .foregroundColor(DesignSystem.Colors.textPrimary)
-            }
 
-            Divider()
-                .frame(height: 20)
+                Divider()
+                    .frame(height: 20)
+            }
 
             HStack(spacing: DesignSystem.Spacing.xs) {
                 IconButton(systemName: "minus.magnifyingglass", action: viewModel.zoomOut)
@@ -351,6 +442,16 @@ struct ComparisonToolbar: View {
                 .foregroundColor(DesignSystem.Colors.border),
             alignment: .bottom
         )
+    }
+
+    private var viewModeIcon: String {
+        switch viewModel.viewMode {
+        case .sideBySide: return "rectangle.split.2x1"
+        case .originalOnly: return "doc"
+        case .comparisonOnly: return "doc.fill"
+        case .overlay: return "square.on.square"
+        case .diffOnly: return "rectangle.dashed"
+        }
     }
 }
 

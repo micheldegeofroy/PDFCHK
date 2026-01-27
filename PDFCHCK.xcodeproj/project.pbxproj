@@ -1,0 +1,524 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A1000001249B0001 /* PDFCHCKApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002249B0001 /* PDFCHCKApp.swift */; };
+		A1000003249B0001 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004249B0001 /* AppState.swift */; };
+		A1000005249B0001 /* Finding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000006249B0001 /* Finding.swift */; };
+		A1000007249B0001 /* PDFAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000008249B0001 /* PDFAnalysis.swift */; };
+		A1000009249B0001 /* TextComparisonResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000A249B0001 /* TextComparisonResult.swift */; };
+		A100000B249B0001 /* ImageComparisonResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000C249B0001 /* ImageComparisonResult.swift */; };
+		A100000D249B0001 /* MetadataComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E249B0001 /* MetadataComparison.swift */; };
+		A100000F249B0001 /* DetectionReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000010249B0001 /* DetectionReport.swift */; };
+		A1000011249B0001 /* PDFAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000012249B0001 /* PDFAnalyzer.swift */; };
+		A1000013249B0001 /* MetadataAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000014249B0001 /* MetadataAnalyzer.swift */; };
+		A1000015249B0001 /* SSIMCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016249B0001 /* SSIMCalculator.swift */; };
+		A1000017249B0001 /* TextComparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000018249B0001 /* TextComparator.swift */; };
+		A1000019249B0001 /* ImageComparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A249B0001 /* ImageComparator.swift */; };
+		A100001B249B0001 /* StructureAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C249B0001 /* StructureAnalyzer.swift */; };
+		A100001D249B0001 /* DetectionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E249B0001 /* DetectionEngine.swift */; };
+		A100001F249B0001 /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020249B0001 /* MainViewModel.swift */; };
+		A1000021249B0001 /* ComparisonViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022249B0001 /* ComparisonViewModel.swift */; };
+		A1000023249B0001 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024249B0001 /* MainView.swift */; };
+		A1000025249B0001 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026249B0001 /* WelcomeView.swift */; };
+		A1000027249B0001 /* DropZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028249B0001 /* DropZoneView.swift */; };
+		A1000029249B0001 /* AnalysisProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A249B0001 /* AnalysisProgressView.swift */; };
+		A100002B249B0001 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002C249B0001 /* ResultsView.swift */; };
+		A100002D249B0001 /* ComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002E249B0001 /* ComparisonView.swift */; };
+		A100002F249B0001 /* ResultsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000030249B0001 /* ResultsPanel.swift */; };
+		A1000031249B0001 /* RiskIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000032249B0001 /* RiskIndicator.swift */; };
+		A1000033249B0001 /* FindingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000034249B0001 /* FindingsSection.swift */; };
+		A1000035249B0001 /* MetadataTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000036249B0001 /* MetadataTreeView.swift */; };
+		A1000037249B0001 /* PrimaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000038249B0001 /* PrimaryButton.swift */; };
+		A1000039249B0001 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100003A249B0001 /* DesignSystem.swift */; };
+		A100003B249B0001 /* FileHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100003C249B0001 /* FileHelpers.swift */; };
+		A100003D249B0001 /* DiffHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100003E249B0001 /* DiffHelpers.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A1000000249B0000 /* PDFCHCK.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PDFCHCK.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1000002249B0001 /* PDFCHCKApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFCHCKApp.swift; sourceTree = "<group>"; };
+		A1000004249B0001 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		A1000006249B0001 /* Finding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Finding.swift; sourceTree = "<group>"; };
+		A1000008249B0001 /* PDFAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFAnalysis.swift; sourceTree = "<group>"; };
+		A100000A249B0001 /* TextComparisonResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextComparisonResult.swift; sourceTree = "<group>"; };
+		A100000C249B0001 /* ImageComparisonResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageComparisonResult.swift; sourceTree = "<group>"; };
+		A100000E249B0001 /* MetadataComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataComparison.swift; sourceTree = "<group>"; };
+		A1000010249B0001 /* DetectionReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionReport.swift; sourceTree = "<group>"; };
+		A1000012249B0001 /* PDFAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFAnalyzer.swift; sourceTree = "<group>"; };
+		A1000014249B0001 /* MetadataAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataAnalyzer.swift; sourceTree = "<group>"; };
+		A1000016249B0001 /* SSIMCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSIMCalculator.swift; sourceTree = "<group>"; };
+		A1000018249B0001 /* TextComparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextComparator.swift; sourceTree = "<group>"; };
+		A100001A249B0001 /* ImageComparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageComparator.swift; sourceTree = "<group>"; };
+		A100001C249B0001 /* StructureAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructureAnalyzer.swift; sourceTree = "<group>"; };
+		A100001E249B0001 /* DetectionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngine.swift; sourceTree = "<group>"; };
+		A1000020249B0001 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		A1000022249B0001 /* ComparisonViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonViewModel.swift; sourceTree = "<group>"; };
+		A1000024249B0001 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		A1000026249B0001 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		A1000028249B0001 /* DropZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropZoneView.swift; sourceTree = "<group>"; };
+		A100002A249B0001 /* AnalysisProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisProgressView.swift; sourceTree = "<group>"; };
+		A100002C249B0001 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
+		A100002E249B0001 /* ComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonView.swift; sourceTree = "<group>"; };
+		A1000030249B0001 /* ResultsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsPanel.swift; sourceTree = "<group>"; };
+		A1000032249B0001 /* RiskIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskIndicator.swift; sourceTree = "<group>"; };
+		A1000034249B0001 /* FindingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindingsSection.swift; sourceTree = "<group>"; };
+		A1000036249B0001 /* MetadataTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataTreeView.swift; sourceTree = "<group>"; };
+		A1000038249B0001 /* PrimaryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryButton.swift; sourceTree = "<group>"; };
+		A100003A249B0001 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		A100003C249B0001 /* FileHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileHelpers.swift; sourceTree = "<group>"; };
+		A100003E249B0001 /* DiffHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffHelpers.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A10000FD249B0000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A10000F7249B0000 = {
+			isa = PBXGroup;
+			children = (
+				A1000100249B0000 /* PDFCHCK */,
+				A10000FF249B0000 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A10000FF249B0000 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A1000000249B0000 /* PDFCHCK.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A1000100249B0000 /* PDFCHCK */ = {
+			isa = PBXGroup;
+			children = (
+				A1000101249B0000 /* App */,
+				A1000102249B0000 /* Models */,
+				A1000103249B0000 /* Services */,
+				A1000104249B0000 /* ViewModels */,
+				A1000105249B0000 /* Views */,
+				A1000106249B0000 /* Utilities */,
+			);
+			path = PDFCHCK;
+			sourceTree = "<group>";
+		};
+		A1000101249B0000 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A1000002249B0001 /* PDFCHCKApp.swift */,
+				A1000004249B0001 /* AppState.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A1000102249B0000 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A1000006249B0001 /* Finding.swift */,
+				A1000008249B0001 /* PDFAnalysis.swift */,
+				A100000A249B0001 /* TextComparisonResult.swift */,
+				A100000C249B0001 /* ImageComparisonResult.swift */,
+				A100000E249B0001 /* MetadataComparison.swift */,
+				A1000010249B0001 /* DetectionReport.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A1000103249B0000 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A1000012249B0001 /* PDFAnalyzer.swift */,
+				A1000014249B0001 /* MetadataAnalyzer.swift */,
+				A1000016249B0001 /* SSIMCalculator.swift */,
+				A1000018249B0001 /* TextComparator.swift */,
+				A100001A249B0001 /* ImageComparator.swift */,
+				A100001C249B0001 /* StructureAnalyzer.swift */,
+				A100001E249B0001 /* DetectionEngine.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A1000104249B0000 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A1000020249B0001 /* MainViewModel.swift */,
+				A1000022249B0001 /* ComparisonViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A1000105249B0000 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A1000024249B0001 /* MainView.swift */,
+				A1000107249B0000 /* Welcome */,
+				A1000108249B0000 /* Analysis */,
+				A1000109249B0000 /* Results */,
+				A100010A249B0000 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A1000106249B0000 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				A100003A249B0001 /* DesignSystem.swift */,
+				A100003C249B0001 /* FileHelpers.swift */,
+				A100003E249B0001 /* DiffHelpers.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		A1000107249B0000 /* Welcome */ = {
+			isa = PBXGroup;
+			children = (
+				A1000026249B0001 /* WelcomeView.swift */,
+				A1000028249B0001 /* DropZoneView.swift */,
+			);
+			path = Welcome;
+			sourceTree = "<group>";
+		};
+		A1000108249B0000 /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				A100002A249B0001 /* AnalysisProgressView.swift */,
+			);
+			path = Analysis;
+			sourceTree = "<group>";
+		};
+		A1000109249B0000 /* Results */ = {
+			isa = PBXGroup;
+			children = (
+				A100002C249B0001 /* ResultsView.swift */,
+				A100002E249B0001 /* ComparisonView.swift */,
+				A1000030249B0001 /* ResultsPanel.swift */,
+				A1000032249B0001 /* RiskIndicator.swift */,
+				A1000034249B0001 /* FindingsSection.swift */,
+				A1000036249B0001 /* MetadataTreeView.swift */,
+			);
+			path = Results;
+			sourceTree = "<group>";
+		};
+		A100010A249B0000 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A1000038249B0001 /* PrimaryButton.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10000F9249B0000 /* PDFCHCK */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000FB249B0000 /* Build configuration list for PBXNativeTarget "PDFCHCK" */;
+			buildPhases = (
+				A10000FC249B0000 /* Sources */,
+				A10000FD249B0000 /* Frameworks */,
+				A10000FE249B0000 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PDFCHCK;
+			productName = PDFCHCK;
+			productReference = A1000000249B0000 /* PDFCHCK.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A10000F8249B0000 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A10000F9249B0000 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = A10000FA249B0000 /* Build configuration list for PBXProject "PDFCHCK" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A10000F7249B0000;
+			productRefGroup = A10000FF249B0000 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A10000F9249B0000 /* PDFCHCK */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A10000FE249B0000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A10000FC249B0000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000001249B0001 /* PDFCHCKApp.swift in Sources */,
+				A1000003249B0001 /* AppState.swift in Sources */,
+				A1000005249B0001 /* Finding.swift in Sources */,
+				A1000007249B0001 /* PDFAnalysis.swift in Sources */,
+				A1000009249B0001 /* TextComparisonResult.swift in Sources */,
+				A100000B249B0001 /* ImageComparisonResult.swift in Sources */,
+				A100000D249B0001 /* MetadataComparison.swift in Sources */,
+				A100000F249B0001 /* DetectionReport.swift in Sources */,
+				A1000011249B0001 /* PDFAnalyzer.swift in Sources */,
+				A1000013249B0001 /* MetadataAnalyzer.swift in Sources */,
+				A1000015249B0001 /* SSIMCalculator.swift in Sources */,
+				A1000017249B0001 /* TextComparator.swift in Sources */,
+				A1000019249B0001 /* ImageComparator.swift in Sources */,
+				A100001B249B0001 /* StructureAnalyzer.swift in Sources */,
+				A100001D249B0001 /* DetectionEngine.swift in Sources */,
+				A100001F249B0001 /* MainViewModel.swift in Sources */,
+				A1000021249B0001 /* ComparisonViewModel.swift in Sources */,
+				A1000023249B0001 /* MainView.swift in Sources */,
+				A1000025249B0001 /* WelcomeView.swift in Sources */,
+				A1000027249B0001 /* DropZoneView.swift in Sources */,
+				A1000029249B0001 /* AnalysisProgressView.swift in Sources */,
+				A100002B249B0001 /* ResultsView.swift in Sources */,
+				A100002D249B0001 /* ComparisonView.swift in Sources */,
+				A100002F249B0001 /* ResultsPanel.swift in Sources */,
+				A1000031249B0001 /* RiskIndicator.swift in Sources */,
+				A1000033249B0001 /* FindingsSection.swift in Sources */,
+				A1000035249B0001 /* MetadataTreeView.swift in Sources */,
+				A1000037249B0001 /* PrimaryButton.swift in Sources */,
+				A1000039249B0001 /* DesignSystem.swift in Sources */,
+				A100003B249B0001 /* FileHelpers.swift in Sources */,
+				A100003D249B0001 /* DiffHelpers.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A1000200249B0000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A1000201249B0000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A1000202249B0000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pdfchck.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A1000203249B0000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pdfchck.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A10000FA249B0000 /* Build configuration list for PBXProject "PDFCHCK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000200249B0000 /* Debug */,
+				A1000201249B0000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000FB249B0000 /* Build configuration list for PBXNativeTarget "PDFCHCK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000202249B0000 /* Debug */,
+				A1000203249B0000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A10000F8249B0000 /* Project object */;
+}

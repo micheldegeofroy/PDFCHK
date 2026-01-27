@@ -18,6 +18,8 @@ class ComparisonViewModel: ObservableObject {
     // MARK: - View Mode
     enum ViewMode: String, CaseIterable {
         case sideBySide = "Side by Side"
+        case originalOnly = "Original"
+        case comparisonOnly = "Comparison"
         case overlay = "Overlay"
         case diffOnly = "Diff Only"
     }
@@ -147,6 +149,14 @@ class ComparisonViewModel: ObservableObject {
 
     func setViewMode(_ mode: ViewMode) {
         viewMode = mode
+    }
+
+    func cycleViewMode() {
+        let allModes = ViewMode.allCases
+        if let currentIndex = allModes.firstIndex(of: viewMode) {
+            let nextIndex = (currentIndex + 1) % allModes.count
+            viewMode = allModes[nextIndex]
+        }
     }
 
     // MARK: - Page Info
