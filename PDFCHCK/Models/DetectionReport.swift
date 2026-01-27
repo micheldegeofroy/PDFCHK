@@ -12,6 +12,7 @@ struct DetectionReport: Codable {
     let textComparison: TextComparisonSummary
     let visualComparison: VisualComparisonSummary
     let metadataComparison: MetadataComparisonSummary
+    let externalToolsAnalysis: ExternalToolsComparisonSummary?
 
     init(
         id: UUID = UUID(),
@@ -22,7 +23,8 @@ struct DetectionReport: Codable {
         findings: [Finding],
         textComparison: TextComparisonSummary,
         visualComparison: VisualComparisonSummary,
-        metadataComparison: MetadataComparisonSummary
+        metadataComparison: MetadataComparisonSummary,
+        externalToolsAnalysis: ExternalToolsComparisonSummary? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -34,6 +36,7 @@ struct DetectionReport: Codable {
         self.textComparison = textComparison
         self.visualComparison = visualComparison
         self.metadataComparison = metadataComparison
+        self.externalToolsAnalysis = externalToolsAnalysis
     }
 
     var criticalFindings: [Finding] {
@@ -77,6 +80,43 @@ struct MetadataComparisonSummary: Codable {
     let fileInfoMatch: Bool
     let timestampAnomalies: Bool
     let differenceCount: Int
+}
+
+// MARK: - External Tools Comparison Summary
+struct ExternalToolsComparisonSummary: Codable {
+    let toolsAvailable: ToolAvailabilityInfo
+    let originalAnalysis: ExternalToolsAnalysis?
+    let comparisonAnalysis: ExternalToolsAnalysis?
+    let fontComparison: FontComparisonResult?
+    let resourceComparison: ResourceComparisonResult?
+    let suspiciousFindings: [String]
+
+    var hasFindings: Bool {
+        !(suspiciousFindings.isEmpty)
+    }
+
+    var fontDifferencesDetected: Bool {
+        fontComparison?.hasDifferences ?? false
+    }
+
+    var resourceDifferencesDetected: Bool {
+        resourceComparison?.hasDifferences ?? false
+    }
+
+    var incrementalUpdatesDetected: Bool {
+        (originalAnalysis?.pdfObjectInfo?.hasIncrementalUpdates ?? false) ||
+        (comparisonAnalysis?.pdfObjectInfo?.hasIncrementalUpdates ?? false)
+    }
+
+    var gpsDataFound: Bool {
+        !(originalAnalysis?.gpsLocations.isEmpty ?? true) ||
+        !(comparisonAnalysis?.gpsLocations.isEmpty ?? true)
+    }
+
+    var embeddedDocumentsFound: Bool {
+        !(originalAnalysis?.embeddedDocuments.isEmpty ?? true) ||
+        !(comparisonAnalysis?.embeddedDocuments.isEmpty ?? true)
+    }
 }
 
 // MARK: - Report Export

@@ -12,11 +12,17 @@ struct ResultsPanel: View {
         case summary = "Summary"
         case findings = "Findings"
         case security = "Security"
+        case forensic = "Forensic"
         case metadata = "Metadata"
     }
 
     var body: some View {
         VStack(spacing: 0) {
+            // Missing tools notification banner
+            if let message = report.externalToolsAnalysis?.toolsAvailable.missingToolsMessage {
+                MissingToolsBanner(message: message)
+            }
+
             // Tab bar
             HStack(spacing: 0) {
                 ForEach(ResultsTab.allCases, id: \.self) { tab in
@@ -48,6 +54,8 @@ struct ResultsPanel: View {
                     comparisonAnalysis: comparisonAnalysis,
                     findings: report.findings
                 )
+            case .forensic:
+                ForensicTab(externalToolsAnalysis: report.externalToolsAnalysis)
             case .metadata:
                 MetadataTab(
                     originalAnalysis: originalAnalysis,
@@ -56,6 +64,43 @@ struct ResultsPanel: View {
             }
         }
         .background(DesignSystem.Colors.background)
+    }
+}
+
+// MARK: - Missing Tools Banner
+struct MissingToolsBanner: View {
+    let message: String
+    @State private var isDismissed = false
+
+    var body: some View {
+        if !isDismissed {
+            HStack {
+                Image(systemName: "info.circle")
+                    .foregroundColor(DesignSystem.Colors.accent)
+
+                Text(message)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                Spacer()
+
+                Button(action: { isDismissed = true }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, DesignSystem.Spacing.md)
+            .padding(.vertical, DesignSystem.Spacing.sm)
+            .background(DesignSystem.Colors.accent.opacity(0.05))
+            .overlay(
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(DesignSystem.Colors.border),
+                alignment: .bottom
+            )
+        }
     }
 }
 
@@ -941,6 +986,783 @@ struct FindingCard: View {
         case .low: return .gray
         case .info: return .blue
         }
+    }
+}
+
+// MARK: - Forensic Tab (External Tools)
+struct ForensicTab: View {
+    let externalToolsAnalysis: ExternalToolsComparisonSummary?
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: DesignSystem.Spacing.md) {
+                if let analysis = externalToolsAnalysis {
+                    // Tool availability status
+                    ToolAvailabilitySection(availability: analysis.toolsAvailable)
+
+                    // Suspicious findings summary
+                    if !analysis.suspiciousFindings.isEmpty {
+                        SuspiciousFindingsSection(findings: analysis.suspiciousFindings)
+                    }
+
+                    // Font comparison
+                    if let fontComp = analysis.fontComparison {
+                        FontComparisonSection(comparison: fontComp)
+                    }
+
+                    // Resource comparison
+                    if let resourceComp = analysis.resourceComparison {
+                        ResourceComparisonSection(comparison: resourceComp)
+                    }
+
+                    // Incremental updates
+                    IncrementalUpdatesSection(
+                        original: analysis.originalAnalysis?.pdfObjectInfo,
+                        comparison: analysis.comparisonAnalysis?.pdfObjectInfo
+                    )
+
+                    // XMP Metadata
+                    if let origXMP = analysis.originalAnalysis?.xmpMetadata,
+                       let compXMP = analysis.comparisonAnalysis?.xmpMetadata {
+                        XMPMetadataSection(original: origXMP, comparison: compXMP)
+                    }
+
+                    // Version history
+                    if let origHistory = analysis.originalAnalysis?.versionHistory,
+                       let compHistory = analysis.comparisonAnalysis?.versionHistory {
+                        VersionHistorySection(original: origHistory, comparison: compHistory)
+                    }
+
+                    // GPS locations
+                    GPSLocationSection(
+                        originalLocations: analysis.originalAnalysis?.gpsLocations ?? [],
+                        comparisonLocations: analysis.comparisonAnalysis?.gpsLocations ?? []
+                    )
+
+                    // Embedded documents
+                    EmbeddedDocumentsSection(
+                        originalDocs: analysis.originalAnalysis?.embeddedDocuments ?? [],
+                        comparisonDocs: analysis.comparisonAnalysis?.embeddedDocuments ?? []
+                    )
+                } else {
+                    // No external tools analysis available
+                    VStack(spacing: DesignSystem.Spacing.md) {
+                        Image(systemName: "wrench.and.screwdriver")
+                            .font(.system(size: 48))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        Text("External Tools Not Available")
+                            .font(DesignSystem.Typography.title)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                        Text("Install mutool and exiftool for enhanced forensic analysis")
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        Text("brew install mupdf-tools exiftool")
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .padding(DesignSystem.Spacing.sm)
+                            .background(DesignSystem.Colors.border.opacity(0.3))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(DesignSystem.Spacing.xl)
+                }
+            }
+            .padding(DesignSystem.Spacing.md)
+        }
+        .background(DesignSystem.Colors.background)
+    }
+}
+
+// MARK: - Tool Availability Section
+struct ToolAvailabilitySection: View {
+    let availability: ToolAvailabilityInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            Text("External Tools Status")
+                .font(DesignSystem.Typography.sectionHeader)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+
+            HStack(spacing: DesignSystem.Spacing.lg) {
+                ToolStatusBadge(name: "mutool", isAvailable: availability.mutoolAvailable)
+                ToolStatusBadge(name: "exiftool", isAvailable: availability.exiftoolAvailable)
+            }
+        }
+        .padding(DesignSystem.Spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - Tool Status Badge
+struct ToolStatusBadge: View {
+    let name: String
+    let isAvailable: Bool
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(isAvailable ? Color.green : Color.gray)
+                .frame(width: 8, height: 8)
+
+            Text(name)
+                .font(DesignSystem.Typography.label)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+
+            Text(isAvailable ? "Available" : "Not found")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+        }
+    }
+}
+
+// MARK: - Suspicious Findings Section
+struct SuspiciousFindingsSection: View {
+    let findings: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            HStack {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundColor(.orange)
+                Text("Suspicious Findings")
+                    .font(DesignSystem.Typography.sectionHeader)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+            }
+
+            ForEach(findings, id: \.self) { finding in
+                HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
+                    Circle()
+                        .fill(Color.orange)
+                        .frame(width: 6, height: 6)
+                        .padding(.top, 6)
+
+                    Text(finding)
+                        .font(DesignSystem.Typography.label)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                }
+            }
+        }
+        .padding(DesignSystem.Spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.05))
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - Font Comparison Section
+struct FontComparisonSection: View {
+    let comparison: FontComparisonResult
+    @State private var isExpanded = true
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: "textformat")
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    Text("Font Analysis")
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    if comparison.hasDifferences {
+                        Text("Differences found")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(.orange)
+                    }
+
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(DesignSystem.Spacing.sm)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    // Summary
+                    HStack {
+                        StatMini(label: "Original", value: "\(comparison.originalFonts.count) fonts")
+                        StatMini(label: "Comparison", value: "\(comparison.comparisonFonts.count) fonts")
+                        StatMini(label: "Common", value: "\(comparison.commonFonts.count)")
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+
+                    // Added fonts
+                    if !comparison.addedFonts.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Added in Comparison:")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                            ForEach(comparison.addedFonts, id: \.self) { font in
+                                Text("+ \(font)")
+                                    .font(DesignSystem.Typography.label)
+                                    .foregroundColor(.green)
+                            }
+                        }
+                        .padding(.horizontal, DesignSystem.Spacing.sm)
+                    }
+
+                    // Removed fonts
+                    if !comparison.removedFonts.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Removed from Original:")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                            ForEach(comparison.removedFonts, id: \.self) { font in
+                                Text("- \(font)")
+                                    .font(DesignSystem.Typography.label)
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        .padding(.horizontal, DesignSystem.Spacing.sm)
+                    }
+                }
+                .padding(.bottom, DesignSystem.Spacing.sm)
+            }
+        }
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - Resource Comparison Section
+struct ResourceComparisonSection: View {
+    let comparison: ResourceComparisonResult
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: "doc.richtext")
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    Text("Page Resources")
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    if comparison.hasDifferences {
+                        Text("\(comparison.pagesWithDifferentResources.count) pages differ")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(.orange)
+                    }
+
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(DesignSystem.Spacing.sm)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded && comparison.hasDifferences {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    Text("Pages with different resources: \(comparison.pagesWithDifferentResources.map { String($0) }.joined(separator: ", "))")
+                        .font(DesignSystem.Typography.label)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.bottom, DesignSystem.Spacing.sm)
+            }
+        }
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - Incremental Updates Section
+struct IncrementalUpdatesSection: View {
+    let original: PDFObjectInfo?
+    let comparison: PDFObjectInfo?
+    @State private var isExpanded = true
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    Text("Incremental Updates")
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    if original?.hasIncrementalUpdates == true || comparison?.hasIncrementalUpdates == true {
+                        Text("Updates detected")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(.orange)
+                    }
+
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(DesignSystem.Spacing.sm)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                    if let orig = original {
+                        HStack {
+                            Text("Original:")
+                                .font(DesignSystem.Typography.label)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .frame(width: 80, alignment: .leading)
+
+                            if orig.hasIncrementalUpdates {
+                                Text("\(orig.updateCount) updates, \(orig.freeObjects) deleted objects")
+                                    .font(DesignSystem.Typography.label)
+                                    .foregroundColor(.orange)
+                            } else {
+                                Text("No incremental updates")
+                                    .font(DesignSystem.Typography.label)
+                                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                            }
+                        }
+                    }
+
+                    if let comp = comparison {
+                        HStack {
+                            Text("Comparison:")
+                                .font(DesignSystem.Typography.label)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .frame(width: 80, alignment: .leading)
+
+                            if comp.hasIncrementalUpdates {
+                                Text("\(comp.updateCount) updates, \(comp.freeObjects) deleted objects")
+                                    .font(DesignSystem.Typography.label)
+                                    .foregroundColor(.orange)
+                            } else {
+                                Text("No incremental updates")
+                                    .font(DesignSystem.Typography.label)
+                                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.bottom, DesignSystem.Spacing.sm)
+            }
+        }
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - XMP Metadata Section
+struct XMPMetadataSection: View {
+    let original: XMPMetadata
+    let comparison: XMPMetadata
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: "doc.badge.gearshape")
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    Text("XMP Metadata")
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    let totalHistory = original.editHistory.count + comparison.editHistory.count
+                    if totalHistory > 0 {
+                        Text("\(totalHistory) history entries")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(DesignSystem.Spacing.sm)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                    if original.hasEditHistory {
+                        Text("Original Edit History:")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        ForEach(original.editHistory) { entry in
+                            HStack {
+                                Text(entry.action)
+                                    .font(DesignSystem.Typography.label)
+                                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                                Text(entry.softwareAgent)
+                                    .font(DesignSystem.Typography.caption)
+                                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                            }
+                        }
+                    }
+
+                    if comparison.hasEditHistory {
+                        Text("Comparison Edit History:")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        ForEach(comparison.editHistory) { entry in
+                            HStack {
+                                Text(entry.action)
+                                    .font(DesignSystem.Typography.label)
+                                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                                Text(entry.softwareAgent)
+                                    .font(DesignSystem.Typography.caption)
+                                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                            }
+                        }
+                    }
+
+                    if !original.hasEditHistory && !comparison.hasEditHistory {
+                        Text("No edit history found in XMP metadata")
+                            .font(DesignSystem.Typography.label)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.bottom, DesignSystem.Spacing.sm)
+            }
+        }
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - Version History Section
+struct VersionHistorySection: View {
+    let original: PDFVersionHistory
+    let comparison: PDFVersionHistory
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    Text("Version History")
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    if original.dateDiscrepancy || comparison.dateDiscrepancy {
+                        Text("Date discrepancy")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(.orange)
+                    }
+
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(DesignSystem.Spacing.sm)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                    // Original
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Original:")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        ForEach(original.toolChain, id: \.self) { tool in
+                            Text(tool)
+                                .font(DesignSystem.Typography.label)
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+                        }
+
+                        if let version = original.pdfVersion {
+                            Text("PDF Version: \(version)")
+                                .font(DesignSystem.Typography.label)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+                    }
+
+                    // Comparison
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Comparison:")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        ForEach(comparison.toolChain, id: \.self) { tool in
+                            Text(tool)
+                                .font(DesignSystem.Typography.label)
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+                        }
+
+                        if let version = comparison.pdfVersion {
+                            Text("PDF Version: \(version)")
+                                .font(DesignSystem.Typography.label)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.bottom, DesignSystem.Spacing.sm)
+            }
+        }
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - GPS Location Section
+struct GPSLocationSection: View {
+    let originalLocations: [GPSLocation]
+    let comparisonLocations: [GPSLocation]
+    @State private var isExpanded = false
+
+    var totalLocations: Int {
+        originalLocations.count + comparisonLocations.count
+    }
+
+    var body: some View {
+        if totalLocations > 0 {
+            VStack(spacing: 0) {
+                Button(action: { isExpanded.toggle() }) {
+                    HStack {
+                        Image(systemName: "location")
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                        Text("GPS Locations")
+                            .font(DesignSystem.Typography.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                        Spacer()
+
+                        Text("\(totalLocations) location(s)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(.orange)
+
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 10))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    .padding(DesignSystem.Spacing.sm)
+                }
+                .buttonStyle(.plain)
+
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                        ForEach(originalLocations) { location in
+                            GPSLocationRow(location: location, source: "Original")
+                        }
+                        ForEach(comparisonLocations) { location in
+                            GPSLocationRow(location: location, source: "Comparison")
+                        }
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.bottom, DesignSystem.Spacing.sm)
+                }
+            }
+            .background(DesignSystem.Colors.background)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                    .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+        }
+    }
+}
+
+// MARK: - GPS Location Row
+struct GPSLocationRow: View {
+    let location: GPSLocation
+    let source: String
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(source)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                Text(location.coordinateString)
+                    .font(DesignSystem.Typography.label)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+            }
+
+            Spacer()
+
+            if let url = location.mapsURL {
+                Link(destination: url) {
+                    Image(systemName: "map")
+                        .foregroundColor(DesignSystem.Colors.accent)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Embedded Documents Section
+struct EmbeddedDocumentsSection: View {
+    let originalDocs: [EmbeddedDocument]
+    let comparisonDocs: [EmbeddedDocument]
+    @State private var isExpanded = false
+
+    var totalDocs: Int {
+        originalDocs.count + comparisonDocs.count
+    }
+
+    var body: some View {
+        if totalDocs > 0 {
+            VStack(spacing: 0) {
+                Button(action: { isExpanded.toggle() }) {
+                    HStack {
+                        Image(systemName: "paperclip")
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                        Text("Embedded Documents")
+                            .font(DesignSystem.Typography.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                        Spacer()
+
+                        Text("\(totalDocs) document(s)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 10))
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                    .padding(DesignSystem.Spacing.sm)
+                }
+                .buttonStyle(.plain)
+
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                        if !originalDocs.isEmpty {
+                            Text("In Original:")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                            ForEach(originalDocs) { doc in
+                                EmbeddedDocumentRow(document: doc)
+                            }
+                        }
+
+                        if !comparisonDocs.isEmpty {
+                            Text("In Comparison:")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                            ForEach(comparisonDocs) { doc in
+                                EmbeddedDocumentRow(document: doc)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.bottom, DesignSystem.Spacing.sm)
+                }
+            }
+            .background(DesignSystem.Colors.background)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                    .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+        }
+    }
+}
+
+// MARK: - Embedded Document Row
+struct EmbeddedDocumentRow: View {
+    let document: EmbeddedDocument
+
+    var body: some View {
+        HStack {
+            Image(systemName: iconForMimeType(document.mimeType))
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+
+            Text(document.filename)
+                .font(DesignSystem.Typography.label)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+
+            Spacer()
+
+            Text(document.sizeFormatted)
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+        }
+    }
+
+    private func iconForMimeType(_ mimeType: String) -> String {
+        if mimeType.contains("image") { return "photo" }
+        if mimeType.contains("pdf") { return "doc.fill" }
+        if mimeType.contains("word") { return "doc.text.fill" }
+        if mimeType.contains("excel") || mimeType.contains("spreadsheet") { return "tablecells" }
+        if mimeType.contains("text") { return "doc.plaintext" }
+        return "doc"
+    }
+}
+
+// MARK: - Stat Mini
+struct StatMini: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(DesignSystem.Typography.label)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+            Text(label)
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

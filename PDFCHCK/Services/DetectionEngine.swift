@@ -11,6 +11,7 @@ actor DetectionEngine {
     private let structureAnalyzer = StructureAnalyzer()
     private let forensicAnalyzer = ForensicAnalyzer()
     private let forensicComparator = ForensicComparator()
+    private let externalToolsService = ExternalToolsService()
 
     private var isCancelled = false
 
@@ -25,6 +26,9 @@ actor DetectionEngine {
         var originalForensics: ForensicResult?
         var comparisonForensics: ForensicResult?
         var forensicComparison: ForensicComparisonResult?
+        var originalExternalTools: ExternalToolsAnalysis?
+        var comparisonExternalTools: ExternalToolsAnalysis?
+        var toolAvailability: ExternalToolsService.ToolAvailability?
     }
 
     // MARK: - Run Analysis
@@ -120,7 +124,7 @@ actor DetectionEngine {
 
         await progressHandler(AnalysisProgress(stage: .security, stageProgress: 1.0))
 
-        // Stage 8: Forensic Comparison
+        // Stage 8: Forensic Comparison + External Tools
         await progressHandler(AnalysisProgress(stage: .forensics, stageProgress: 0))
         guard !isCancelled else { throw AnalysisError.cancelled }
 
@@ -136,6 +140,18 @@ actor DetectionEngine {
             )
         }
 
+        await progressHandler(AnalysisProgress(stage: .forensics, stageProgress: 0.3))
+
+        // Run external tools analysis (mutool, exiftool)
+        state.toolAvailability = await externalToolsService.checkToolAvailability()
+
+        if state.toolAvailability?.anyToolAvailable == true {
+            state.originalExternalTools = await runExternalToolsAnalysis(for: originalURL)
+            await progressHandler(AnalysisProgress(stage: .forensics, stageProgress: 0.6))
+
+            state.comparisonExternalTools = await runExternalToolsAnalysis(for: comparisonURL)
+        }
+
         await progressHandler(AnalysisProgress(stage: .forensics, stageProgress: 1.0))
 
         // Generate report
@@ -145,6 +161,84 @@ actor DetectionEngine {
     // MARK: - Cancel Analysis
     func cancel() {
         isCancelled = true
+    }
+
+    // MARK: - External Tools Analysis
+    private func runExternalToolsAnalysis(for url: URL) async -> ExternalToolsAnalysis {
+        let pdfPath = url.path
+        let availability = await externalToolsService.checkToolAvailability()
+
+        var analysis = ExternalToolsAnalysis(
+            toolAvailability: ToolAvailabilityInfo(
+                mutoolAvailable: availability.mutoolAvailable,
+                exiftoolAvailable: availability.exiftoolAvailable,
+                missingToolsMessage: availability.missingToolsMessage
+            )
+        )
+
+        // Mutool operations
+        if availability.mutoolAvailable {
+            do {
+                analysis.fonts = try await externalToolsService.extractFonts(from: pdfPath)
+            } catch {
+                // Font extraction failed, continue with other analyses
+            }
+
+            do {
+                analysis.pageResources = try await externalToolsService.getPageResources(from: pdfPath)
+            } catch {
+                // Resource extraction failed, continue
+            }
+
+            do {
+                analysis.pdfObjectInfo = try await externalToolsService.showPDFObjects(from: pdfPath)
+            } catch {
+                // Object info failed, continue
+            }
+        }
+
+        // Exiftool operations
+        if availability.exiftoolAvailable {
+            do {
+                analysis.xmpMetadata = try await externalToolsService.extractXMPMetadata(from: pdfPath)
+            } catch {
+                // XMP extraction failed, continue
+            }
+
+            do {
+                analysis.versionHistory = try await externalToolsService.extractVersionHistory(from: pdfPath)
+            } catch {
+                // Version history failed, continue
+            }
+
+            do {
+                analysis.gpsLocations = try await externalToolsService.extractGPSData(from: pdfPath)
+            } catch {
+                // GPS extraction failed, continue
+            }
+
+            do {
+                analysis.forensicMetadata = try await externalToolsService.getForensicMetadata(from: pdfPath)
+            } catch {
+                // Forensic metadata failed, continue
+            }
+
+            // Extract embedded documents to temp directory
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("PDFCHCK-\(UUID().uuidString)")
+                .path
+
+            do {
+                analysis.embeddedDocuments = try await externalToolsService.extractEmbeddedDocuments(
+                    from: pdfPath,
+                    to: tempDir
+                )
+            } catch {
+                // Embedded docs extraction failed, continue
+            }
+        }
+
+        return analysis
     }
 
     // MARK: - Generate Report
@@ -173,6 +267,10 @@ actor DetectionEngine {
         if let forensic = state.forensicComparison {
             allFindings.append(contentsOf: forensic.findings)
         }
+
+        // Add findings from external tools analysis
+        let externalToolsFindings = generateExternalToolsFindings(state: state)
+        allFindings.append(contentsOf: externalToolsFindings)
 
         // Calculate risk score
         let riskScore = calculateRiskScore(findings: allFindings, state: state)
@@ -214,6 +312,9 @@ actor DetectionEngine {
             differenceCount: state.metadataComparison?.differences.count ?? 0
         )
 
+        // Create external tools comparison summary
+        let externalToolsSummary = createExternalToolsSummary(state: state)
+
         return DetectionReport(
             originalFile: originalRef,
             comparisonFile: comparisonRef,
@@ -221,7 +322,8 @@ actor DetectionEngine {
             findings: allFindings.sortedBySeverity(),
             textComparison: textSummary,
             visualComparison: visualSummary,
-            metadataComparison: metadataSummary
+            metadataComparison: metadataSummary,
+            externalToolsAnalysis: externalToolsSummary
         )
     }
 
@@ -286,6 +388,166 @@ actor DetectionEngine {
         }
 
         return findings
+    }
+
+    // MARK: - External Tools Findings
+    private func generateExternalToolsFindings(state: AnalysisState) -> [Finding] {
+        var findings: [Finding] = []
+
+        guard let origTools = state.originalExternalTools,
+              let compTools = state.comparisonExternalTools else {
+            return findings
+        }
+
+        // Font comparison
+        let fontComparison = FontComparisonResult.compare(
+            original: origTools.fonts,
+            comparison: compTools.fonts
+        )
+
+        if fontComparison.hasDifferences {
+            let severity: Severity = (fontComparison.addedFonts.count + fontComparison.removedFonts.count) > 3 ? .high : .medium
+
+            var description = ""
+            if !fontComparison.addedFonts.isEmpty {
+                description += "Added fonts: \(fontComparison.addedFonts.joined(separator: ", ")). "
+            }
+            if !fontComparison.removedFonts.isEmpty {
+                description += "Removed fonts: \(fontComparison.removedFonts.joined(separator: ", "))."
+            }
+
+            findings.append(Finding(
+                category: .forensic,
+                severity: severity,
+                title: "Font Differences Detected",
+                description: description.trimmingCharacters(in: .whitespaces)
+            ))
+        }
+
+        // Incremental updates
+        if let origObj = origTools.pdfObjectInfo, origObj.hasIncrementalUpdates {
+            findings.append(Finding(
+                category: .forensic,
+                severity: .medium,
+                title: "Original Document Has Incremental Updates",
+                description: "Document has been modified after initial creation (\(origObj.updateCount) updates)"
+            ))
+        }
+
+        if let compObj = compTools.pdfObjectInfo, compObj.hasIncrementalUpdates {
+            findings.append(Finding(
+                category: .forensic,
+                severity: .high,
+                title: "Comparison Document Has Incremental Updates",
+                description: "Document has been modified after initial creation (\(compObj.updateCount) updates)"
+            ))
+        }
+
+        // XMP edit history differences
+        let origHistoryCount = origTools.xmpMetadata?.editHistory.count ?? 0
+        let compHistoryCount = compTools.xmpMetadata?.editHistory.count ?? 0
+
+        if origHistoryCount != compHistoryCount {
+            findings.append(Finding(
+                category: .forensic,
+                severity: .medium,
+                title: "XMP Edit History Differs",
+                description: "Original: \(origHistoryCount) edits, Comparison: \(compHistoryCount) edits"
+            ))
+        }
+
+        // GPS location data (privacy concern)
+        if !origTools.gpsLocations.isEmpty || !compTools.gpsLocations.isEmpty {
+            let totalLocations = origTools.gpsLocations.count + compTools.gpsLocations.count
+            findings.append(Finding(
+                category: .forensic,
+                severity: .info,
+                title: "GPS Location Data Found",
+                description: "\(totalLocations) GPS coordinate(s) found in embedded content"
+            ))
+        }
+
+        // Embedded documents
+        if !origTools.embeddedDocuments.isEmpty || !compTools.embeddedDocuments.isEmpty {
+            let totalDocs = origTools.embeddedDocuments.count + compTools.embeddedDocuments.count
+            findings.append(Finding(
+                category: .forensic,
+                severity: .info,
+                title: "Embedded Documents Found",
+                description: "\(totalDocs) embedded file(s) detected"
+            ))
+        }
+
+        // Version history date discrepancies
+        if origTools.versionHistory?.dateDiscrepancy == true ||
+           compTools.versionHistory?.dateDiscrepancy == true {
+            findings.append(Finding(
+                category: .metadata,
+                severity: .medium,
+                title: "Date Discrepancy Detected",
+                description: "Creation and modification dates differ significantly"
+            ))
+        }
+
+        return findings
+    }
+
+    // MARK: - Create External Tools Summary
+    private func createExternalToolsSummary(state: AnalysisState) -> ExternalToolsComparisonSummary? {
+        guard let availability = state.toolAvailability else {
+            return nil
+        }
+
+        let toolInfo = ToolAvailabilityInfo(
+            mutoolAvailable: availability.mutoolAvailable,
+            exiftoolAvailable: availability.exiftoolAvailable,
+            missingToolsMessage: availability.missingToolsMessage
+        )
+
+        // If no tools available, return basic summary with message
+        guard availability.anyToolAvailable else {
+            return ExternalToolsComparisonSummary(
+                toolsAvailable: toolInfo,
+                originalAnalysis: nil,
+                comparisonAnalysis: nil,
+                fontComparison: nil,
+                resourceComparison: nil,
+                suspiciousFindings: []
+            )
+        }
+
+        var fontComparison: FontComparisonResult?
+        var resourceComparison: ResourceComparisonResult?
+        var suspiciousFindings: [String] = []
+
+        if let origTools = state.originalExternalTools,
+           let compTools = state.comparisonExternalTools {
+
+            // Font comparison
+            fontComparison = FontComparisonResult.compare(
+                original: origTools.fonts,
+                comparison: compTools.fonts
+            )
+
+            // Resource comparison
+            resourceComparison = ResourceComparisonResult.compare(
+                original: origTools.pageResources,
+                comparison: compTools.pageResources
+            )
+
+            // Collect suspicious findings
+            suspiciousFindings.append(contentsOf: origTools.suspiciousFindings)
+            suspiciousFindings.append(contentsOf: compTools.suspiciousFindings)
+        }
+
+        return ExternalToolsComparisonSummary(
+            toolsAvailable: toolInfo,
+            originalAnalysis: state.originalExternalTools,
+            comparisonAnalysis: state.comparisonExternalTools,
+            fontComparison: fontComparison,
+            resourceComparison: resourceComparison,
+            suspiciousFindings: suspiciousFindings
+        )
     }
 
     // MARK: - Get Analysis Components
