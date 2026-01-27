@@ -410,7 +410,7 @@ struct ComparisonToolbar: View {
                             .font(DesignSystem.Typography.body)
                     }
                     .foregroundColor(.white)
-                    .padding(.horizontal, DesignSystem.Spacing.md)
+                    .frame(width: 160)
                     .padding(.vertical, DesignSystem.Spacing.sm)
                     .background(DesignSystem.Colors.accent)
                     .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))

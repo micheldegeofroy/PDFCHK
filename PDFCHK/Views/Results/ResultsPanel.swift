@@ -155,9 +155,9 @@ struct SummaryTab: View {
 
                 // File info
                 HStack(spacing: DesignSystem.Spacing.md) {
-                    FileInfoCard(title: "Original", file: report.originalFile)
+                    FileInfoCard(title: "First Document", file: report.originalFile)
                     if isComparison {
-                        FileInfoCard(title: "Comparison", file: report.comparisonFile)
+                        FileInfoCard(title: "Second Document", file: report.comparisonFile)
                     }
                 }
 
@@ -597,8 +597,8 @@ struct FileHashComparison: View {
 
             // Hash values
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                HashRow(label: "Original", hash: originalHash, highlight: !match)
-                HashRow(label: "Comparison", hash: comparisonHash, highlight: !match)
+                HashRow(label: "First Document", hash: originalHash, highlight: !match)
+                HashRow(label: "Second Document", hash: comparisonHash, highlight: !match)
             }
         }
         .padding(DesignSystem.Spacing.sm)
@@ -644,9 +644,9 @@ struct MetadataTab: View {
                     // Side-by-side comparison
                     MetadataSideBySide(original: orig, comparison: comp)
                 } else if let orig = originalAnalysis {
-                    MetadataCard(title: "Original", analysis: orig)
+                    MetadataCard(title: "First Document", analysis: orig)
                 } else if let comp = comparisonAnalysis {
-                    MetadataCard(title: "Comparison", analysis: comp)
+                    MetadataCard(title: "Second Document", analysis: comp)
                 }
             }
             .padding(DesignSystem.Spacing.md)
@@ -669,12 +669,12 @@ struct MetadataSideBySide: View {
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .frame(width: 140, alignment: .leading)
 
-                Text("Original")
+                Text("First Document")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("Comparison")
+                Text("Second Document")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -897,15 +897,14 @@ struct CompareRowView: View {
                 .frame(width: 140, alignment: .leading)
                 .lineLimit(1)
 
-            // Original value
+            // First Document value - standard text, no coloring
             Text(row.original)
                 .font(DesignSystem.Typography.label)
-                .foregroundColor(row.isDifferent ? .red : DesignSystem.Colors.accent)
-                .fontWeight(row.isDifferent ? .medium : .regular)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(2)
 
-            // Comparison value
+            // Second Document value - red for different, blue for same
             Text(row.comparison)
                 .font(DesignSystem.Typography.label)
                 .foregroundColor(row.isDifferent ? .red : DesignSystem.Colors.accent)
@@ -1579,8 +1578,8 @@ struct FontComparisonSection: View {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                     // Summary
                     HStack {
-                        StatMini(label: "Original", value: "\(comparison.originalFonts.count) fonts")
-                        StatMini(label: "Comparison", value: "\(comparison.comparisonFonts.count) fonts")
+                        StatMini(label: "First Document", value: "\(comparison.originalFonts.count) fonts")
+                        StatMini(label: "Second Document", value: "\(comparison.comparisonFonts.count) fonts")
                         StatMini(label: "Common", value: "\(comparison.commonFonts.count)")
                     }
                     .padding(.horizontal, DesignSystem.Spacing.sm)
@@ -1978,10 +1977,10 @@ struct GPSLocationSection: View {
                 if isExpanded {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                         ForEach(originalLocations) { location in
-                            GPSLocationRow(location: location, source: "Original")
+                            GPSLocationRow(location: location, source: "First Document")
                         }
                         ForEach(comparisonLocations) { location in
-                            GPSLocationRow(location: location, source: "Comparison")
+                            GPSLocationRow(location: location, source: "Second Document")
                         }
                     }
                     .padding(.horizontal, DesignSystem.Spacing.sm)
