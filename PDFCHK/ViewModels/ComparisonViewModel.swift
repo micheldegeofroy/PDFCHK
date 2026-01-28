@@ -18,8 +18,8 @@ class ComparisonViewModel: ObservableObject {
     // MARK: - View Mode
     enum ViewMode: String, CaseIterable {
         case sideBySide = "Side by Side"
-        case originalOnly = "Original"
-        case comparisonOnly = "Comparison"
+        case originalOnly = "First PDF"
+        case comparisonOnly = "Second PDF"
         case overlay = "Overlay"
         case diffOnly = "Diff Only"
     }

@@ -28,7 +28,7 @@ struct ComparisonView: View {
                     case .sideBySide:
                         HStack(spacing: 0) {
                             SyncedDocumentView(
-                                title: "First Document",
+                                title: "First PDF",
                                 image: viewModel.originalPageImage,
                                 zoom: viewModel.zoomLevel,
                                 scrollSync: scrollSync,
@@ -39,7 +39,7 @@ struct ComparisonView: View {
                                 .background(DesignSystem.Colors.border)
 
                             SyncedDocumentView(
-                                title: "Second Document",
+                                title: "Second PDF",
                                 image: viewModel.comparisonPageImage,
                                 zoom: viewModel.zoomLevel,
                                 scrollSync: scrollSync,
@@ -51,14 +51,14 @@ struct ComparisonView: View {
 
                     case .originalOnly:
                         SingleDocumentView(
-                            title: "First Document",
+                            title: "First PDF",
                             image: viewModel.originalPageImage,
                             zoom: viewModel.zoomLevel
                         )
 
                     case .comparisonOnly:
                         SingleDocumentView(
-                            title: "Second Document",
+                            title: "Second PDF",
                             image: viewModel.comparisonPageImage,
                             zoom: viewModel.zoomLevel,
                             showDiffOverlay: viewModel.showDiffOverlay,
@@ -512,7 +512,7 @@ struct OverlayPageView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("First Document")
+                Text("First PDF")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
 
@@ -520,7 +520,7 @@ struct OverlayPageView: View {
                     .accentColor(DesignSystem.Colors.accent)
                     .frame(width: 200)
 
-                Text("Comparison")
+                Text("Second PDF")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
             }

@@ -155,9 +155,9 @@ struct SummaryTab: View {
 
                 // File info
                 HStack(spacing: DesignSystem.Spacing.md) {
-                    FileInfoCard(title: "First Document", file: report.originalFile)
+                    FileInfoCard(title: "First PDF", file: report.originalFile)
                     if isComparison {
-                        FileInfoCard(title: "Second Document", file: report.comparisonFile)
+                        FileInfoCard(title: "Second PDF", file: report.comparisonFile)
                     }
                 }
 
@@ -597,8 +597,8 @@ struct FileHashComparison: View {
 
             // Hash values
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                HashRow(label: "First Document", hash: originalHash, highlight: !match)
-                HashRow(label: "Second Document", hash: comparisonHash, highlight: !match)
+                HashRow(label: "First PDF", hash: originalHash, highlight: !match)
+                HashRow(label: "Second PDF", hash: comparisonHash, highlight: !match)
             }
         }
         .padding(DesignSystem.Spacing.sm)
@@ -644,9 +644,9 @@ struct MetadataTab: View {
                     // Side-by-side comparison
                     MetadataSideBySide(original: orig, comparison: comp)
                 } else if let orig = originalAnalysis {
-                    MetadataCard(title: "First Document", analysis: orig)
+                    MetadataCard(title: "First PDF", analysis: orig)
                 } else if let comp = comparisonAnalysis {
-                    MetadataCard(title: "Second Document", analysis: comp)
+                    MetadataCard(title: "Second PDF", analysis: comp)
                 }
             }
             .padding(DesignSystem.Spacing.md)
@@ -669,12 +669,12 @@ struct MetadataSideBySide: View {
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .frame(width: 140, alignment: .leading)
 
-                Text("First Document")
+                Text("First PDF")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("Second Document")
+                Text("Second PDF")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -897,14 +897,14 @@ struct CompareRowView: View {
                 .frame(width: 140, alignment: .leading)
                 .lineLimit(1)
 
-            // First Document value - standard text, no coloring
+            // First PDF value - standard text, no coloring
             Text(row.original)
                 .font(DesignSystem.Typography.label)
                 .foregroundColor(DesignSystem.Colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(2)
 
-            // Second Document value - red for different, blue for same
+            // Second PDF value - red for different, blue for same
             Text(row.comparison)
                 .font(DesignSystem.Typography.label)
                 .foregroundColor(row.isDifferent ? .red : DesignSystem.Colors.accent)
@@ -1424,6 +1424,14 @@ struct ForensicTab: View {
                         originalDocs: analysis.originalAnalysis?.embeddedDocuments ?? [],
                         comparisonDocs: analysis.comparisonAnalysis?.embeddedDocuments ?? []
                     )
+
+                    // Complete ExifTool Metadata
+                    if let origMeta = analysis.originalAnalysis?.forensicMetadata,
+                       let compMeta = analysis.comparisonAnalysis?.forensicMetadata {
+                        ExifToolMetadataSection(original: origMeta, comparison: compMeta)
+                    } else if let origMeta = analysis.originalAnalysis?.forensicMetadata {
+                        ExifToolMetadataSingleSection(metadata: origMeta)
+                    }
                 } else {
                     // No external tools analysis available
                     VStack(spacing: DesignSystem.Spacing.md) {
@@ -1578,8 +1586,8 @@ struct FontComparisonSection: View {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                     // Summary
                     HStack {
-                        StatMini(label: "First Document", value: "\(comparison.originalFonts.count) fonts")
-                        StatMini(label: "Second Document", value: "\(comparison.comparisonFonts.count) fonts")
+                        StatMini(label: "First PDF", value: "\(comparison.originalFonts.count) fonts")
+                        StatMini(label: "Second PDF", value: "\(comparison.comparisonFonts.count) fonts")
                         StatMini(label: "Common", value: "\(comparison.commonFonts.count)")
                     }
                     .padding(.horizontal, DesignSystem.Spacing.sm)
@@ -1977,10 +1985,10 @@ struct GPSLocationSection: View {
                 if isExpanded {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                         ForEach(originalLocations) { location in
-                            GPSLocationRow(location: location, source: "First Document")
+                            GPSLocationRow(location: location, source: "First PDF")
                         }
                         ForEach(comparisonLocations) { location in
-                            GPSLocationRow(location: location, source: "Second Document")
+                            GPSLocationRow(location: location, source: "Second PDF")
                         }
                     }
                     .padding(.horizontal, DesignSystem.Spacing.sm)
@@ -2146,3 +2154,278 @@ struct StatMini: View {
     }
 }
 
+
+// MARK: - ExifTool Metadata Section (Comparison)
+struct ExifToolMetadataSection: View {
+    let original: ForensicMetadata
+    let comparison: ForensicMetadata
+    @State private var isExpanded = true
+
+    var allGroups: [String] {
+        Array(Set(original.allGroups + comparison.allGroups)).sorted()
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    Text("Complete ExifTool Metadata")
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    Text("\(allGroups.count) groups")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(DesignSystem.Spacing.sm)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(spacing: DesignSystem.Spacing.sm) {
+                    // Header row
+                    HStack(spacing: 0) {
+                        Text("Field")
+                            .font(DesignSystem.Typography.label)
+                            .fontWeight(.medium)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .frame(width: 140, alignment: .leading)
+
+                        Text("First PDF")
+                            .font(DesignSystem.Typography.label)
+                            .fontWeight(.medium)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Text("Second PDF")
+                            .font(DesignSystem.Typography.label)
+                            .fontWeight(.medium)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.vertical, 4)
+                    .background(DesignSystem.Colors.border.opacity(0.3))
+
+                    ForEach(allGroups, id: \.self) { group in
+                        ExifToolGroupSection(
+                            groupName: group,
+                            originalProps: original.properties(for: group),
+                            comparisonProps: comparison.properties(for: group)
+                        )
+                    }
+                }
+                .padding(.bottom, DesignSystem.Spacing.sm)
+            }
+        }
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - ExifTool Metadata Section (Single Document)
+struct ExifToolMetadataSingleSection: View {
+    let metadata: ForensicMetadata
+    @State private var isExpanded = true
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    Text("Complete ExifTool Metadata")
+                        .font(DesignSystem.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    Text("\(metadata.allGroups.count) groups")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(DesignSystem.Spacing.sm)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                VStack(spacing: DesignSystem.Spacing.sm) {
+                    ForEach(metadata.allGroups, id: \.self) { group in
+                        ExifToolSingleGroupSection(
+                            groupName: group,
+                            properties: metadata.properties(for: group)
+                        )
+                    }
+                }
+                .padding(.bottom, DesignSystem.Spacing.sm)
+            }
+        }
+        .background(DesignSystem.Colors.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Border.radius)
+                .stroke(DesignSystem.Colors.border, lineWidth: DesignSystem.Border.width)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Border.radius))
+    }
+}
+
+// MARK: - ExifTool Group Section (Comparison)
+struct ExifToolGroupSection: View {
+    let groupName: String
+    let originalProps: [(key: String, value: String)]
+    let comparisonProps: [(key: String, value: String)]
+    @State private var isExpanded = false
+
+    var allKeys: [String] {
+        Array(Set(originalProps.map { $0.key } + comparisonProps.map { $0.key })).sorted()
+    }
+
+    var diffCount: Int {
+        allKeys.filter { key in
+            let origValue = originalProps.first(where: { $0.key == key })?.value ?? "-"
+            let compValue = comparisonProps.first(where: { $0.key == key })?.value ?? "-"
+            return origValue != compValue
+        }.count
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .frame(width: 16)
+
+                    Text(groupName)
+                        .font(DesignSystem.Typography.label)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    if diffCount > 0 {
+                        Text("\(diffCount) diff")
+                            .font(.system(size: 10))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.red.opacity(0.8))
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+
+                    Text("\(allKeys.count) fields")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                ForEach(allKeys, id: \.self) { key in
+                    let origValue = originalProps.first(where: { $0.key == key })?.value ?? "-"
+                    let compValue = comparisonProps.first(where: { $0.key == key })?.value ?? "-"
+                    let isDifferent = origValue != compValue
+
+                    HStack(spacing: 0) {
+                        Text(key)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .frame(width: 140, alignment: .leading)
+                            .lineLimit(1)
+
+                        Text(origValue)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .lineLimit(2)
+
+                        Text(compValue)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(isDifferent ? .red : DesignSystem.Colors.accent)
+                            .fontWeight(isDifferent ? .medium : .regular)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .lineLimit(2)
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.vertical, 2)
+                    .background(isDifferent ? Color.red.opacity(0.05) : Color.clear)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - ExifTool Single Group Section
+struct ExifToolSingleGroupSection: View {
+    let groupName: String
+    let properties: [(key: String, value: String)]
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .frame(width: 16)
+
+                    Text(groupName)
+                        .font(DesignSystem.Typography.label)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    Text("\(properties.count) fields")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                ForEach(properties, id: \.key) { prop in
+                    HStack(spacing: 0) {
+                        Text(prop.key)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .frame(width: 180, alignment: .leading)
+                            .lineLimit(1)
+
+                        Text(prop.value)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .lineLimit(2)
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.vertical, 2)
+                }
+            }
+        }
+    }
+}
