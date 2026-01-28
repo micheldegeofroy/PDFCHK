@@ -62,8 +62,27 @@ PDFCHK is a native macOS application for forensic analysis of PDF documents. It 
 ## Screenshots
 
 <p align="center">
-  <img src="assets/screenshot-welcome.png" alt="Welcome Screen" width="45%">
-  <img src="assets/screenshot-analysis.png" alt="Analysis Results" width="45%">
+  <img src="assets/screenshot-welcome.png" alt="Welcome Screen" width="80%">
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-summary.png" alt="Summary - Risk Score" width="80%">
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-tampering.png" alt="Tampering Analysis" width="80%">
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-findings.png" alt="Findings" width="80%">
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-forensic.png" alt="Forensic Analysis" width="80%">
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-metadata.png" alt="Metadata Comparison" width="80%">
 </p>
 
 ## Installation
